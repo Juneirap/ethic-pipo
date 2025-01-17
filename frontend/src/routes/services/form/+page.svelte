@@ -1,0 +1,1004 @@
+<script lang="ts">
+  import { onMount } from "svelte";
+
+  // สร้างตัวแปรสำหรับวันที่ปัจจุบัน
+  let currentDate = new Date().toISOString().split("T")[0];
+
+  // Prename data
+  let prenames: Array<{
+    id: number;
+    description: string;
+  }> = [];
+
+  onMount(async () => {
+    try {
+      const response = await fetch("http://localhost:8000/prename/all");
+      if (response.ok) {
+        prenames = await response.json();
+      } else {
+        console.error("Failed to fetch prenames");
+      }
+    } catch (error) {
+      console.error("Error fetching prenames:", error);
+    }
+  });
+
+  // Department search
+  let departmentSearchTerm = "";
+  let departmentResults: Array<{
+    id: number;
+    description: string;
+    facultyId: string;
+  }> = [];
+  let showDepartmentDropdown = false;
+  let selectedFaculty = "";
+
+  async function searchDepartments(term: string) {
+    departmentSearchTerm = term;
+    if (!term) {
+      departmentResults = [];
+      showDepartmentDropdown = false;
+      return;
+    }
+
+    try {
+      const response = await fetch(
+        `http://localhost:8000/departments/name?name=${encodeURIComponent(term)}`
+      );
+      if (response.ok) {
+        departmentResults = await response.json();
+        showDepartmentDropdown = true;
+      } else {
+        console.error("Failed to fetch departments");
+        departmentResults = [];
+      }
+    } catch (error) {
+      console.error("Error searching departments:", error);
+      departmentResults = [];
+    }
+  }
+
+  function selectDepartment(dept: {
+    id: number;
+    description: string;
+    facultyId: string;
+  }) {
+    researcherData.departmentId = dept.id.toString();
+    departmentSearchTerm = dept.description;
+    selectedFaculty = dept.facultyId;
+    showDepartmentDropdown = false;
+  }
+
+  // Researcher search
+  let researcherSearchTerm = "";
+  let researcherResults: Array<{
+    id: string;
+    prenameId: string;
+    name: string;
+    surname: string;
+    telNo: string;
+    email: string;
+    department: string;
+    faculty: string;
+  }> = [];
+  let showResearcherDropdown = false;
+
+  async function searchResearchers(term: string) {
+    researcherSearchTerm = term;
+    if (!term) {
+      researcherResults = [];
+      showResearcherDropdown = false;
+      return;
+    }
+
+    try {
+      const response = await fetch(
+        `http://localhost:8000/researchers/name?name=${encodeURIComponent(term)}`
+      );
+      if (response.ok) {
+        researcherResults = await response.json();
+        showResearcherDropdown = true;
+      } else {
+        console.error("Failed to fetch researchers");
+        researcherResults = [];
+      }
+    } catch (error) {
+      console.error("Error searching researchers:", error);
+      researcherResults = [];
+    }
+  }
+
+  let selectedResearcher: any = null; // เพิ่มตัวแปรเก็บนักวิจัยที่เลือก
+
+  function selectResearcher(researcher: any) {
+    selectedResearcher = researcher; // เก็บข้อมูลนักวิจัยที่เลือก
+
+    // Fill in all researcher data
+    researcherData = {
+      prenameId: researcher.prenameId.toString(),
+      name: researcher.name,
+      surname: researcher.surname,
+      departmentId: "",
+      telNo: researcher.telNo,
+      email: researcher.email,
+    };
+
+    // Set the display values
+    researcherSearchTerm = researcher.name;
+    departmentSearchTerm = researcher.department;
+    selectedFaculty = researcher.faculty;
+
+    // Set the petition researcher ID
+    formData.researcherId = researcher.id;
+
+    showResearcherDropdown = false;
+  }
+
+  // Form data
+  let formData = {
+    correspondenceNo: "",
+    title_th: "",
+    title_en: "",
+    objectiveId: undefined,
+    objectiveOther: "",
+    grantId: undefined,
+    grantOther: "",
+    typeId: undefined,
+    researcherId: undefined,
+    statusId: 1,
+    currentLevelId: 1,
+    staffId: "1",
+    note: "",
+  };
+
+  // Researcher form data
+  let researcherData = {
+    prenameId: "",
+    name: "",
+    surname: "",
+    departmentId: "",
+    telNo: "",
+    email: "",
+  };
+
+  // State for checkboxes
+  let selectedObjective: number | undefined = undefined;
+  let selectedGrant: number | undefined = undefined;
+  let selectedType: number | undefined = undefined;
+
+  let documentTypes: any[] = [];
+  let uploadedFiles: { [key: number]: { name: string; file: File } } = {};
+  let petitionId: number | null = null;
+
+  async function fetchDocumentTypes() {
+    try {
+      const response = await fetch(
+        "http://localhost:8000/dataget/documenttype1_11"
+      );
+      if (response.ok) {
+        documentTypes = await response.json();
+      } else {
+        console.error("Failed to fetch document types");
+      }
+    } catch (error) {
+      console.error("Error fetching document types:", error);
+    }
+  }
+
+  async function handleFileUpload(event: Event, documentId: number) {
+    const input = event.target as HTMLInputElement;
+    const files = input.files;
+    if (files && files.length > 0) {
+      uploadedFiles[documentId] = {
+        name: files[0].name,
+        file: files[0],
+      };
+    }
+  }
+
+  async function handleSubmit(event: Event) {
+    event.preventDefault();
+
+    try {
+      // ตรวจสอบข้อมูลที่จำเป็น
+      if (
+        !researcherData.prenameId ||
+        !researcherData.name ||
+        !researcherData.surname
+      ) {
+        alert("กรุณากรอกข้อมูลคำนำหน้า ชื่อ และนามสกุล");
+        return;
+      }
+
+      if (!formData.title_th || !formData.title_en) {
+        alert("กรุณากรอกชื่อเรื่องภาษาไทยและภาษาอังกฤษ");
+        return;
+      }
+
+      if (!selectedObjective) {
+        alert("กรุณาเลือกวัตถุประสงค์");
+        return;
+      }
+
+      if (!selectedGrant) {
+        alert("กรุณาเลือกแหล่งทุน");
+        return;
+      }
+
+      if (!selectedType) {
+        alert("กรุณาเลือกประเภทโครงการวิจัย");
+        return;
+      }
+
+      let researcherId;
+
+      // ถ้าไม่ได้เลือกนักวิจัยที่มีอยู่ ให้สร้างนักวิจัยใหม่
+      if (!selectedResearcher) {
+        // Submit the researcher data
+        const researcherResponse = await fetch(
+          "http://localhost:8000/researchers",
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify(researcherData),
+          }
+        );
+
+        if (!researcherResponse.ok) {
+          const errorData = await researcherResponse.json();
+          throw new Error(
+            errorData.error || "Failed to submit researcher data"
+          );
+        }
+
+        const latestResponse = await fetch(
+          "http://localhost:8000/researchers/latest",
+          {
+            method: "GET",
+            headers: {
+              "Content-Type": "application/json",
+            },
+          }
+        );
+
+        if (!latestResponse.ok) {
+          throw new Error("Failed to get latest researcher ID");
+        }
+
+        const latestResearcher = await latestResponse.json();
+        researcherId = latestResearcher.id;
+      } else {
+        researcherId = selectedResearcher.id;
+      }
+
+      // อัพเดท formData ก่อนส่ง
+      const petitionPayload = {
+        ...formData,
+        researcherId: researcherId,
+        objectiveId: selectedObjective,
+        objectiveOther: selectedObjective === 3 ? formData.objectiveOther : "",
+        grantId: selectedGrant,
+        grantOther: selectedGrant === 3 ? formData.grantOther : "",
+        typeId: selectedType,
+        statusId: 1,
+        currentLevelId: 1,
+        staffId: "1",
+      };
+
+      // Submit petition
+      const petitionResponse = await fetch("http://localhost:8000/petitions", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(petitionPayload),
+      });
+
+      if (!petitionResponse.ok) {
+        const errorData = await petitionResponse.json();
+        throw new Error(errorData.error || "Failed to submit petition");
+      }
+
+      // Get latest petition ID
+      const latestPetitionResponse = await fetch(
+        "http://localhost:8000/petitions/latest",
+        {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+          },
+        }
+      );
+
+      if (!latestPetitionResponse.ok) {
+        throw new Error("Failed to get latest petition ID");
+      }
+
+      const latestPetition = await latestPetitionResponse.json();
+      petitionId = latestPetition[0].id;
+
+      // Upload all files with petition ID and document type ID
+      for (const [documentId, fileData] of Object.entries(uploadedFiles)) {
+        const formData = new FormData();
+        formData.append("file", fileData.file);
+
+        const response = await fetch(
+          `http://localhost:8000/upload/upload/${petitionId}/${documentId}`,
+          {
+            method: "POST",
+            body: formData,
+          }
+        );
+
+        if (!response.ok) {
+          throw new Error(`ไฟล์ช่องที่ ${documentId} คุณซ้ำ`);
+        }
+      }
+
+      alert("บันทึกข้อมูลสำเร็จ");
+
+      // Reset all form fields
+      uploadedFiles = {};
+      researcherData = {
+        prenameId: "",
+        name: "",
+        surname: "",
+        departmentId: "",
+        telNo: "",
+        email: "",
+      };
+
+      formData = {
+        correspondenceNo: "",
+        title_th: "",
+        title_en: "",
+        objectiveId: undefined,
+        objectiveOther: "",
+        grantId: undefined,
+        grantOther: "",
+        typeId: undefined,
+        researcherId: undefined,
+        note: "",
+      };
+
+      // Reset search terms and selections
+      researcherSearchTerm = "";
+      departmentSearchTerm = "";
+      selectedFaculty = "";
+      selectedResearcher = null;
+      selectedObjective = undefined;
+      selectedGrant = undefined;
+      selectedType = undefined;
+      petitionId = null;
+
+      // Reset file inputs
+      const fileInputs = document.querySelectorAll('input[type="file"]');
+      fileInputs.forEach((input: HTMLInputElement) => {
+        input.value = "";
+      });
+
+      // Reset radio buttons
+      const radioButtons = document.querySelectorAll('input[type="radio"]');
+      radioButtons.forEach((radio: HTMLInputElement) => {
+        radio.checked = false;
+      });
+
+      // Reset text inputs
+      const textInputs = document.querySelectorAll('input[type="text"]');
+      textInputs.forEach((input: HTMLInputElement) => {
+        input.value = "";
+      });
+
+      // Reset date input
+      const dateInput = document.querySelector(
+        'input[type="date"]'
+      ) as HTMLInputElement;
+      if (dateInput) {
+        dateInput.value = currentDate;
+      }
+    } catch (error) {
+      console.error("Error submitting form:", error);
+      alert("กรุณาตรวจสอบชื่อไฟล์เอกสาร: " + error.message);
+    }
+  }
+
+  fetchDocumentTypes();
+</script>
+
+<div class="form-container">
+  <div class="header">
+    <img
+      src="https://th.bing.com/th/id/OIP.CFJHa2V7Aq9YTw8qF2GLzwHaIn?rs=1&pid=ImgDetMain"
+      alt="มหาวิทยาลัยราชภัฏบุรีรัมย์"
+      class="logo"
+    />
+    <div class="title">
+      <h1 class="text-2xl font-bold center">บันทึกข้อความ</h1>
+      <h2 class="text-2xl">มหาวิทยาลัยราชภัฏบุรีรัมย์</h2>
+    </div>
+    <div class="form-number">BRU-H1</div>
+  </div>
+
+  <form on:submit={handleSubmit}>
+    <div class="form-row two-col">
+      <div class="field">
+        <label>เลขเอกสาร</label>
+        <div class="dotted-line">
+          <input type="text" bind:value={formData.correspondenceNo} />
+        </div>
+      </div>
+      <div class="field">
+        <label>วันที่</label>
+        <div class="dotted-line">
+          <input type="date" bind:value={currentDate} />
+        </div>
+      </div>
+    </div>
+
+    <div class="form-row">
+      <div class="field full-width">
+        <label>เรื่อง</label>
+        <span
+          >ขออนุมัติทำการวิจัยในมนุษย์และขอรับการรับรองจากคณะกรรมการจริยธรรมการวิจัยในมนุษย์</span
+        >
+      </div>
+    </div>
+
+    <div class="form-row">
+      <div class="field full-width">
+        <label>เรียน</label>
+        <span>ผู้อำนวยการสถาบันวิจัยและพัฒนา</span>
+      </div>
+    </div>
+
+    <div class="form-row">
+      <div class="field full-width">
+        <label>ด้วยข้าพเจ้า</label>
+        <div class="dotted-line researcher-input">
+          <div class="researcher-field-group">
+            <select bind:value={researcherData.prenameId}>
+              <option value="">-- คำนำหน้า --</option>
+              {#each prenames as prename}
+                <option value={prename.id.toString()}
+                  >{prename.description}</option
+                >
+              {/each}
+            </select>
+            <input
+              type="text"
+              bind:value={researcherSearchTerm}
+              on:input={(e) => searchResearchers(e.currentTarget.value)}
+              on:blur={() => {
+                setTimeout(() => {
+                  showResearcherDropdown = false;
+                  researcherData.name = researcherSearchTerm;
+                }, 200);
+              }}
+              placeholder="ชื่อ"
+            />
+            <input
+              type="text"
+              bind:value={researcherData.surname}
+              placeholder="นามสกุล"
+            />
+          </div>
+          {#if showResearcherDropdown && researcherResults.length > 0}
+            <div class="researcher-dropdown">
+              {#each researcherResults as researcher}
+                <div
+                  class="researcher-option"
+                  on:click={() => selectResearcher(researcher)}
+                >
+                  {researcher.name}
+                  {researcher.surname}
+                </div>
+              {/each}
+            </div>
+          {/if}
+        </div>
+      </div>
+    </div>
+
+    <div class="form-row">
+      <div class="field full-width">
+        <label>สำนักวิชา</label>
+        <div class="dotted-line department-input">
+          <input
+            type="text"
+            bind:value={departmentSearchTerm}
+            on:input={(e) => searchDepartments(e.currentTarget.value)}
+            placeholder="พิมพ์เพื่อค้นหาสาขา"
+          />
+          {#if showDepartmentDropdown && departmentResults.length > 0}
+            <div class="department-dropdown">
+              {#each departmentResults as dept}
+                <div
+                  class="department-option"
+                  on:click={() => selectDepartment(dept)}
+                >
+                  {dept.description}
+                </div>
+              {/each}
+            </div>
+          {/if}
+        </div>
+      </div>
+    </div>
+
+    <div class="form-row">
+      <div class="field full-width">
+        <label>คณะ</label>
+        <div class="dotted-line">
+          <input type="text" bind:value={selectedFaculty} readonly />
+        </div>
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="field full-width">
+        <label>โทรศัพท์</label>
+        <div class="dotted-line">
+          <input type="text" bind:value={researcherData.telNo} />
+        </div>
+      </div>
+    </div>
+
+    <div class="form-row">
+      <div class="field full-width">
+        <label>อีเมล</label>
+        <div class="dotted-line">
+          <input type="text" bind:value={researcherData.email} />
+        </div>
+      </div>
+    </div>
+
+    <div class="form-row">
+      <div class="field full-width">
+        <label>มีความประสงค์จะทำวิจัยเรื่อง(ภาษาไทย)</label>
+        <div class="dotted-line">
+          <input type="text" bind:value={formData.title_th} />
+        </div>
+      </div>
+    </div>
+
+    <div class="form-row">
+      <div class="field full-width">
+        <label>(ภาษาอังกฤษ)</label>
+        <div class="dotted-line">
+          <input type="text" bind:value={formData.title_en} />
+        </div>
+      </div>
+    </div>
+
+    <div class="research-type">
+      <p>เพื่อ</p>
+      <div class="checkbox-group">
+        <label>
+          <input
+            type="radio"
+            name="objective"
+            value={1}
+            bind:group={selectedObjective}
+          />
+          การทำวิจัย
+        </label>
+        <label>
+          <input
+            type="radio"
+            name="objective"
+            value={2}
+            bind:group={selectedObjective}
+          />
+          การขอขึ้นทะเบียนยาในประเทศ
+        </label>
+        <label class="inline-container">
+          <input
+            type="radio"
+            name="objective"
+            value={3}
+            bind:group={selectedObjective}
+          />
+          อื่น ๆ
+          <div class="dotted-line">
+            <input
+              type="text"
+              class="inline-input"
+              placeholder="ระบุรายละเอียด"
+              bind:value={formData.objectiveOther}
+              disabled={selectedObjective !== 3}
+            />
+          </div>
+        </label>
+      </div>
+    </div>
+
+    <div class="funding-source">
+      <p>ได้รับทุนสนับสนุนการทำวิจัยจาก</p>
+      <div class="checkbox-group">
+        <label>
+          <input
+            type="radio"
+            name="grant"
+            value={1}
+            bind:group={selectedGrant}
+          />
+          มรภ.บร.
+        </label>
+        <label>
+          <input
+            type="radio"
+            name="grant"
+            value={2}
+            bind:group={selectedGrant}
+          />
+          ส่วนตัว
+        </label>
+        <label class="inline-container">
+          <input
+            type="radio"
+            name="grant"
+            value={3}
+            bind:group={selectedGrant}
+          />
+          แหล่งทุนภายนอก (โปรดระบุ)
+          <div class="dotted-line">
+            <input
+              type="text"
+              class="inline-input"
+              placeholder="ระบุรายละเอียด"
+              bind:value={formData.grantOther}
+              disabled={selectedGrant !== 3}
+            />
+          </div>
+        </label>
+      </div>
+    </div>
+    <div class="funding-source">
+      <p>ประเภทโครงการวิจัย</p>
+      <div class="checkbox-group">
+        <label>
+          <input type="radio" name="type" value={1} bind:group={selectedType} />
+          ทั่วไป (เกี่ยวข้องกับมนุษย์โดยตรง)
+        </label>
+        <label>
+          <input type="radio" name="type" value={2} bind:group={selectedType} />
+          ความเสี่ยงต่ำ (เช่น ศึกษาข้อมูลย้อนหลังจากเวชระเบียน บทความ บทสัมภาษณ์
+          แบบสอบถาม ศึกษาสิ่งส่งตรวจต่างๆ จำกร่างกาย เป็นต้น)
+        </label>
+      </div>
+
+      <div class="document-table">
+        <h3>โดยได้แนบเอกสารประกอบการพิจารณา จำนวน 2 ชุด ดังนี้</h3>
+        <table>
+          <thead>
+            <tr>
+              <th>รายการเอกสาร</th>
+              <th>อัพโหลดไฟล์</th>
+            </tr>
+          </thead>
+          <tbody>
+            {#each documentTypes as doc}
+              <tr>
+                <td>{doc.id}. {doc.description}</td>
+                <td>
+                  <div class="upload-container">
+                    <label
+                      for="file-upload-{doc.id}"
+                      class="custom-file-upload"
+                    >
+                      <span class="choose-file-btn">Choose File</span>
+                      {#if uploadedFiles[doc.id]}
+                        <span class="file-name"
+                          >{uploadedFiles[doc.id].name}</span
+                        >
+                      {:else}
+                        <span class="no-file">No file chosen</span>
+                      {/if}
+                    </label>
+                    <input
+                      type="file"
+                      id="file-upload-{doc.id}"
+                      class="upload-input"
+                      on:change={(e) => handleFileUpload(e, doc.id)}
+                      accept=".pdf,.doc,.docx"
+                    />
+                  </div>
+                </td>
+              </tr>
+            {/each}
+          </tbody>
+        </table>
+      </div>
+    </div>
+    <div class="form-actions">
+      <button type="submit">ส่งเอกสารขออนุมัติทำการวิจัย</button>
+    </div>
+  </form>
+</div>
+
+<style>
+  .form-container {
+    width: 100%;
+    max-width: 1000px;
+    margin: 0 auto;
+    padding: 40px;
+    background: white;
+    font-family: "Sarabun", sans-serif;
+    margin-left: 50px;
+    margin-right: 50px;
+  }
+
+  .header {
+    display: flex;
+    align-items: flex-start;
+    margin-bottom: 30px;
+    position: relative;
+  }
+
+  .logo {
+    width: 60px;
+    height: auto;
+    margin-right: 1px;
+  }
+
+  .title {
+    text-align: center;
+    flex-grow: 1;
+  }
+
+  .title h1,
+  .title h2 {
+    margin: 0;
+    font-weight: normal;
+  }
+
+  .file-upload {
+    position: relative;
+    display: inline-block;
+    width: 100%;
+  }
+
+  .form-number {
+    position: absolute;
+    top: 0;
+    right: 0;
+    padding: 5px 10px;
+    border: 1px solid #000;
+  }
+
+  .form-row {
+    margin-bottom: 20px;
+  }
+
+  .two-col {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+  }
+
+  .three-col {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 20px;
+  }
+
+  .field {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .full-width {
+    width: 100%;
+  }
+
+  .dotted-line {
+    flex-grow: 1;
+    border-bottom: 1px dotted #000;
+    position: relative;
+  }
+
+  input[type="text"],
+  input[type="date"] {
+    width: 100%;
+    border: none;
+    background: transparent;
+    padding: 5px 0;
+    font-family: "Sarabun", sans-serif;
+  }
+
+  input[type="text"]:focus,
+  input[type="date"]:focus {
+    outline: none;
+  }
+
+  .fixed-text {
+    position: absolute;
+    left: 0;
+    bottom: 5px;
+  }
+
+  .checkbox-group {
+    margin: 10px 0;
+    padding-left: 20px;
+  }
+
+  .checkbox-group label {
+    display: block;
+    margin: 5px 0;
+  }
+
+  .inline-input {
+    width: 200px;
+    margin-left: 10px;
+  }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 20px;
+  }
+
+  th,
+  td {
+    border: 1px solid #000;
+    padding: 10px;
+    text-align: left;
+  }
+
+  th {
+    background-color: #f5f5f5;
+  }
+
+  .center-text {
+    text-align: center;
+  }
+
+  .form-actions {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-top: 20px;
+    gap: 15px;
+  }
+
+  .form-actions button {
+    padding: 10px 20px;
+    font-size: 16px;
+    background-color: #007bff;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+  }
+
+  .form-actions button:hover {
+    opacity: 0.9;
+  }
+
+  .department-input {
+    position: relative;
+  }
+
+  .department-dropdown {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    background: white;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    max-height: 200px;
+    overflow-y: auto;
+    z-index: 1000;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  }
+
+  .department-option {
+    padding: 8px 12px;
+    cursor: pointer;
+    transition: background-color 0.2s;
+  }
+
+  .department-option:hover {
+    background-color: #f0f0f0;
+  }
+
+  .researcher-dropdown {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    background: white;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    max-height: 200px;
+    overflow-y: auto;
+    z-index: 1000;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  }
+
+  .researcher-option {
+    padding: 8px 12px;
+    cursor: pointer;
+    transition: background-color 0.2s;
+  }
+
+  .researcher-option:hover {
+    background-color: #f0f0f0;
+  }
+
+  select {
+    width: 100%;
+    padding: 8px;
+    border: none;
+    background: transparent;
+    outline: none;
+    font-size: 1em;
+    cursor: pointer;
+  }
+
+  select option {
+    background: white;
+    color: #333;
+    padding: 8px;
+  }
+
+  .researcher-input {
+    position: relative;
+  }
+
+  .researcher-field-group {
+    display: flex;
+    gap: 10px;
+    width: 100%;
+  }
+
+  .researcher-field-group select {
+    width: 150px;
+    flex-shrink: 0;
+  }
+
+  .researcher-field-group input {
+    flex: 1;
+  }
+
+  .upload-container {
+    position: relative;
+    width: 100%;
+  }
+
+  .custom-file-upload {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    cursor: pointer;
+  }
+
+  .choose-file-btn {
+    display: inline-block;
+    padding: 6px 12px;
+    background-color: #007bff;
+    color: white;
+    border-radius: 4px;
+    cursor: pointer;
+  }
+
+  .choose-file-btn:hover {
+    background-color: #0056b3;
+  }
+
+  .file-name {
+    color: #333;
+    word-break: break-all;
+  }
+
+  .no-file {
+    color: #666;
+  }
+
+  .upload-input {
+    display: none;
+  }
+</style>
