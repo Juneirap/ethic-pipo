@@ -38,7 +38,7 @@
         
         goto('/home');
       } else {
-        errorMessage = data.message || 'เกิดข้อผิดพลาดในการเข้าสู่ระบบ';
+        errorMessage = data.message || 'เกิดข้อผิดพลาดในการเข้าสู่ระบบ : ไม่มีข้อมูลในระบบ';
         console.error('Login failed:', data.message);
       }
     } catch (error) {
@@ -102,14 +102,14 @@
     margin-bottom: 0.5rem;
     font-size: 2rem;
     color: #222;
-    align-self: flex-start;
+    align-self: center;
   }
 
   p {
     margin-bottom: 1.5rem;
     font-size: 1rem;
     color: #666;
-    align-self: flex-start;
+    align-self: center;
   }
 
   .input-group {
