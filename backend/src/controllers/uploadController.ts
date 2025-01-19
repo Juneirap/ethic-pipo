@@ -3,10 +3,11 @@ import fs from "fs/promises";
 import path from "path";
 import crypto from "crypto";
 import conMysql from "../ultis/connectDB";
+import { eq } from "drizzle-orm";
 import { petitionFiles } from "../db/schema";
 
 const db = await conMysql();
-const UPLOAD_DIR = path.join(__dirname, "../../../uploads");
+const UPLOAD_DIR = path.join(__dirname, "../../uploads");
 
 // ตรวจสอบและสร้างโฟลเดอร์ uploads ถ้ายังไม่มี
 async function ensureUploadDir() {
@@ -155,5 +156,62 @@ export const getFile = async (c: Context) => {
       error: "Failed to get file.", 
       details: (error as Error).message 
     }, 500);
+  }
+};
+
+// สร้างฟังก์ชันสําหรับการแก้ไขไฟล์
+export const editFile = async (c: Context) => {
+  try {
+    const formData = await c.req.formData();
+    const file = formData.get("file") as File;
+    const fileId = parseInt(c.req.param("id"));
+
+    if (!file) {
+      return c.json({ error: "No file uploaded" }, 400);
+    }
+
+    // อ่านข้อมูลไฟล์
+    const buffer = await file.arrayBuffer();
+    const fileContent = Buffer.from(buffer);
+
+    // สร้าง MD5 hash
+    const md5Hash = crypto.createHash("md5").update(fileContent).digest("hex");
+
+    // แยกนามสกุลไฟล์
+    const extension = path.extname(file.name);
+    const fileName = md5Hash + extension;
+
+    // ใช้ UPLOAD_DIR แทนการใช้ process.cwd()
+    await ensureUploadDir();
+
+    // บันทึกไฟล์
+    await fs.writeFile(path.join(UPLOAD_DIR, fileName), fileContent);
+
+    // อัพเดทข้อมูลในฐานข้อมูล
+    await db
+      .update(petitionFiles)
+      .set({
+        name: fileName,
+        extension,
+        md5: md5Hash,
+      })
+      .where(eq(petitionFiles.id, fileId));
+
+    // ดึงข้อมูลไฟล์ที่อัพเดทแล้ว
+    const [updatedFile] = await db
+      .select()
+      .from(petitionFiles)
+      .where(eq(petitionFiles.id, fileId));
+
+    return c.json({ 
+      message: "File edited successfully!",
+      file: updatedFile
+    }, 200);
+  } catch (error) {
+    console.error(error);
+    return c.json(
+      { error: "Failed to edit file.", details: (error as any).message },
+      500
+    );
   }
 };

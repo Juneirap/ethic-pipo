@@ -69,41 +69,47 @@
   </form>
 </div>
 
+//ทำให้อยู่กึ่งกลางจอหน้าจอ
+
 <style>
   .login-container {
     display: flex;
-    justify-content: center;
-    align-items: center;
+    justify-content: flex-start; /* จัดให้อยู่ด้านบน */
+    align-items: flex-start; /* จัดให้อยู่ด้านซ้าย */
     height: 100vh;
     background-color: #f9f9f9;
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    padding: 2rem 3rem; /* เว้นระยะห่างด้านบน-ล่าง และซ้าย-ขวา */
   }
 
   .login-form {
     background-color: #fff;
     padding: 3rem 2.5rem;
-    border-radius: 16px;
+    border-radius: 0px; /* ขอบเหลี่ยม */
     box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
     width: 100%;
     max-width: 480px;
     min-height: 450px;
     display: flex;
     flex-direction: column;
-    justify-content: center;
-    align-items: center;
-    text-align: center;
+    justify-content: flex-start;
+    align-items: flex-start;
+    text-align: left;
+    gap: 1rem;
   }
 
   h2 {
-    margin-bottom: 1rem;
+    margin-bottom: 0.5rem;
     font-size: 2rem;
     color: #222;
+    align-self: flex-start;
   }
 
   p {
-    margin-bottom: 2rem;
+    margin-bottom: 1.5rem;
     font-size: 1rem;
     color: #666;
+    align-self: flex-start;
   }
 
   .input-group {
@@ -117,7 +123,7 @@
     padding: 0.9rem 1rem;
     font-size: 1rem;
     border: 1px solid #ddd;
-    border-radius: 8px;
+    border-radius: 0px; /* ขอบเหลี่ยม */
     background-color: #fdfdfd;
     transition: border-color 0.3s ease;
   }
@@ -133,10 +139,10 @@
     background-color: #fff2f2;
     color: #dc3545;
     padding: 0.75rem;
-    border-radius: 8px;
+    border-radius: 0px; /* ขอบเหลี่ยม */
     margin-bottom: 1.5rem;
     width: 100%;
-    text-align: center;
+    text-align: left;
   }
 
   button.submit-button {
@@ -145,11 +151,12 @@
     background-color: #007bff;
     color: #fff;
     border: none;
-    border-radius: 8px;
+    border-radius: 0px; /* ขอบเหลี่ยม */
     cursor: pointer;
     font-size: 1.1rem;
     font-weight: bold;
     transition: background-color 0.3s ease, transform 0.2s ease;
+    margin-top: 1rem;
   }
 
   button.submit-button:hover {
@@ -162,3 +169,4 @@
     transform: translateY(0);
   }
 </style>
+

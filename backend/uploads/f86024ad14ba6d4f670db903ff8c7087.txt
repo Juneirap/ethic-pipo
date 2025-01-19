@@ -1,0 +1,379 @@
+
+<div class="form-container">
+  <div class="header">
+    <img
+      src="https://th.bing.com/th/id/OIP.CFJHa2V7Aq9YTw8qF2GLzwHaIn?rs=1&pid=ImgDetMain"
+      alt="มหาวิทยาลัยราชภัฏบุรีรัมย์"
+      class="logo"
+    />
+    <div class="title">
+      <h1 class="text-2xl font-bold center">บันทึกข้อความ</h1>
+      <h2 class="text-lg">มหาวิทยาลัยราชภัฏบุรีรัมย์</h2>
+    </div>
+    <div class="form-number">BRU-H1</div>
+  </div>
+
+  <form on:submit|preventDefault={handleSubmit}>
+    <div class="form-row three-col">
+      <div class="field">
+        <label>หน่วยงาน</label>
+        <div class="dotted-line">
+          <input type="text" bind:value={formData.department} />
+        </div>
+      </div>
+      <div class="field">
+        <label>โทรศัพท์</label>
+        <div class="dotted-line">
+          <input type="text" bind:value={formData.telephone} />
+        </div>
+      </div>
+      <div class="field">
+        <label>ต่อ</label>
+        <div class="dotted-line">
+          <input type="text" bind:value={formData.extension} />
+        </div>
+      </div>
+    </div>
+
+    <div class="form-row two-col">
+      <div class="field">
+        <label>ที่</label>
+        <div class="dotted-line">
+          <input type="text" bind:value={formData.docNumber} />
+        </div>
+      </div>
+      <div class="field">
+        <label>วันที่</label>
+        <div class="dotted-line">
+          <input type="date" bind:value={formData.date} />
+        </div>
+      </div>
+    </div>
+
+    <div class="form-row">
+      <div class="field full-width">
+        <label>เรื่อง</label>
+        <class class="dotted-line">
+          <span class="fixed-text">ขอให้พิจารณาจริยธรรมการวิจัยในมนุษย์</span>
+        </class>
+      </div>
+    </div>
+
+    <div class="form-row">
+      <div class="field full-width">
+        <label>เรียน</label>
+        <div class="dotted-line">
+          <span class="fixed-text">ผู้อำนวยการสถาบันวิจัยและพัฒนา</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="form-row two-col">
+      <div class="field">
+        <label>ด้วยข้าพเจ้า</label>
+        <div class="dotted-line">
+          <input type="text" bind:value={formData.researcher} />
+        </div>
+      </div>
+      <div class="field">
+        <label>อาจารย์ประจำ/นักศึกษาสาขา</label>
+        <div class="dotted-line">
+          <input type="text" bind:value={formData.position} />
+        </div>
+      </div>
+    </div>
+
+    <div class="form-row">
+      <div class="field full-width">
+        <label>คณะ/หน่วยงาน</label>
+        <div class="dotted-line">
+          <input type="text" bind:value={formData.faculty} />
+        </div>
+      </div>
+    </div>
+
+    <div class="research-type">
+      <p>เพื่อ</p>
+      <div class="checkbox-group">
+        <label>
+          <input type="checkbox" bind:checked={formData.researchType.thesis} />
+          การทำวิจัย
+        </label>
+        <label>
+          <input
+            type="checkbox"
+            bind:checked={formData.researchType.drugRegistry}
+          />
+          การขอขึ้นทะเบียนยาในประเทศ
+        </label>
+        <label>
+          <input type="checkbox" bind:checked={formData.researchType.other} />
+          อื่น ๆ (โปรดระบุ)
+          <input
+            type="text"
+            bind:value={formData.researchType.otherText}
+            class="inline-input"
+          />
+        </label>
+      </div>
+    </div>
+
+    <div class="funding-source">
+      <p>ได้รับทุนสนับสนุนการทำวิจัยจาก</p>
+      <div class="checkbox-group">
+        <label>
+          <input type="checkbox" bind:checked={formData.funding.university} />
+          มรภ.บร.
+        </label>
+        <label>
+          <input type="checkbox" bind:checked={formData.funding.personal} />
+          ส่วนตัว
+        </label>
+        <label>
+          <input type="checkbox" bind:checked={formData.funding.external} />
+          แหล่งทุนภายนอก (โปรดระบุ)
+          <input
+            type="text"
+            bind:value={formData.funding.externalText}
+            class="inline-input"
+          />
+        </label>
+      </div>
+    </div>
+    <div class="funding-source">
+      <p>ประเภทโครงการวิจัยที่ขอ</p>
+      <div class="checkbox-group">
+        <label>
+          <input type="checkbox" bind:checked={formData.funding.university} />
+          ทั่วไป (เกี่ยวข้องกับมนุษย์โดยตรง)
+        </label>
+        <label>
+          <input type="checkbox" bind:checked={formData.funding.personal} />
+          ความเสี่ยงต่ำ (เช่น ศึกษาข้อมูลย้อนหลังจากเวชระเบียน บทความ บทสัมภาษณ์
+          แบบสอบถาม ศึกษาสิ่งส่งตรวจต่างๆ จำกร่างงกาย เป็นต้น)
+        </label>
+        <label>
+          <input type="checkbox" bind:checked={formData.funding.external} />
+          เข้าข่ายยกเว้นการรับรอง
+          <input
+            type="text"
+            bind:value={formData.funding.externalText}
+            class="inline-input"
+          />
+        </label>
+      </div>
+
+      <div class="document-table">
+        <h3>โดยได้แนบเอกสารประกอบการพิจารณา จำนวน 2 ชุด ดังนี้</h3>
+        <table>
+          <thead>
+            <tr>
+              <th>รายการ</th>
+              <th>File</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td
+                >1.
+                แบบเสนอโครงการวิจัยเพื่อขอรับการพิจารณาจริยธรรมการวิจัยในมนุษย์
+                (protocol)</td
+              >
+              <td>
+                <label for="file-upload" class="upload-label">Upload File</label
+                >
+                <input type="file" id="file-upload" class="upload-input" />
+              </td>
+            </tr>
+            <tr>
+              <td>2. โครงการวิจัยฉบับสมบูรณ์ (Full Proposal)</td>
+              <td>
+                <label for="file-upload" class="upload-label">Upload File</label
+                >
+                <input type="file" id="file-upload" class="upload-input" />
+              </td>
+            </tr>
+            <tr>
+              <td>3. เอกสารการขอความยินยอมการเข้าร่วมโครงการวิจัย (ถ้ามี)</td>
+              <td>
+                <label for="file-upload" class="upload-label">Upload File</label
+                >
+                <input type="file" id="file-upload" class="upload-input" />
+              </td>
+            </tr>
+            <tr>
+              <td
+                >4. แบบบันทึกข้อมูลสำหรับการวิจัย (Case record form) (ถ้ามี)</td
+              >
+              <td>
+                <label for="file-upload" class="upload-label">Upload File</label
+                >
+                <input type="file" id="file-upload" class="upload-input" />
+              </td>
+            </tr>
+            <tr>
+              <td>5. แบบสอบถาม (Questionnaire) (ถ้ามี)</td>
+              <td>
+                <label for="file-upload" class="upload-label">Upload File</label
+                >
+                <input type="file" id="file-upload" class="upload-input" />
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+    <div class="form-actions">
+      <button type="submit">ส่งคำขอเอกสาร</button>
+    </div>
+  </form>
+</div>
+
+<style>
+  .form-container {
+    width: 100%;
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 40px;
+    background: white;
+    font-family: "Sarabun", sans-serif;
+    margin-left: 100px;
+  }
+
+  .header {
+    display: flex;
+    align-items: flex-start;
+    margin-bottom: 30px;
+    position: relative;
+  }
+
+  .logo {
+    width: 80px;
+    height: auto;
+    margin-right: 20px;
+  }
+
+  .title {
+    text-align: center;
+    flex-grow: 1;
+  }
+
+  .title h1,
+  .title h2 {
+    margin: 0;
+    font-weight: normal;
+  }
+
+  .form-number {
+    position: absolute;
+    top: 0;
+    right: 0;
+    padding: 5px 10px;
+    border: 1px solid #000;
+  }
+
+  .form-row {
+    margin-bottom: 20px;
+  }
+
+  .two-col {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+  }
+
+  .three-col {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 20px;
+  }
+
+  .field {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .full-width {
+    width: 100%;
+  }
+
+  .dotted-line {
+    flex-grow: 1;
+    border-bottom: 1px dotted #000;
+    position: relative;
+  }
+
+  input[type="text"],
+  input[type="date"] {
+    width: 100%;
+    border: none;
+    background: transparent;
+    padding: 5px 0;
+    font-family: "Sarabun", sans-serif;
+  }
+
+  input[type="text"]:focus,
+  input[type="date"]:focus {
+    outline: none;
+  }
+
+  .fixed-text {
+    position: absolute;
+    left: 0;
+    bottom: 5px;
+  }
+
+  .checkbox-group {
+    margin: 10px 0;
+    padding-left: 20px;
+  }
+
+  .checkbox-group label {
+    display: block;
+    margin: 5px 0;
+  }
+
+  .inline-input {
+    width: 200px;
+    margin-left: 10px;
+  }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 20px;
+  }
+
+  th,
+  td {
+    border: 1px solid #000;
+    padding: 10px;
+    text-align: left;
+  }
+
+  th {
+    background-color: #f5f5f5;
+  }
+
+  .form-actions {
+    display: flex;
+    justify-content: center;
+    align-items: center; 
+    margin-top: 20px; 
+  }
+
+  .form-actions button {
+    padding: 10px 20px;
+    font-size: 16px;
+    background-color: #007bff;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+  }
+
+  .form-actions button:hover {
+    background-color: #0056b3;
+  }
+</style>

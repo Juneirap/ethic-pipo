@@ -1,6 +1,7 @@
 <script lang="ts">
   import { onMount } from "svelte";
   import { page } from "$app/stores";
+  import { goto } from '$app/navigation';
 
   // สร้างตัวแปรสำหรับวันที่ปัจจุบัน
   let currentDate = new Date().toISOString().split("T")[0];
@@ -108,6 +109,98 @@
     }
   };
 
+  // เพิ่มฟังก์ชันสำหรับการอัพโหลดไฟล์เพิ่มเติม
+  async function handleFileUpload(event: Event, documentTypeId: number) {
+    const input = event.target as HTMLInputElement;
+    const file = input.files?.[0];
+    if (!file) return;
+
+    const petitionId = $page.url.searchParams.get("id");
+    if (!petitionId) return;
+
+    try {
+      const formData = new FormData();
+      formData.append("file", file);
+      formData.append("petitionId", petitionId);
+      formData.append("documentTypeId", documentTypeId.toString());
+
+      const response = await fetch("http://localhost:8000/upload", {
+        method: "POST",
+        body: formData,
+      });
+
+      if (response.ok) {
+        alert("อัพโหลดไฟล์สำเร็จ");
+        // รีเฟรชรายการไฟล์
+        getPetitionFiles();
+      } else {
+        alert("เกิดข้อผิดพลาดในการอัพโหลดไฟล์");
+      }
+    } catch (error) {
+      console.error("Error:", error);
+      alert("เกิดข้อผิดพลาดในการอัพโหลดไฟล์");
+    }
+  }
+
+  // เพิ่มฟังก์ชันสำหรับการแก้ไขไฟล์
+  async function handleFileEdit(file: PetitionFile, newFile: File) {
+    try {
+      const formData = new FormData();
+      formData.append("file", newFile);
+      
+      const response = await fetch(`http://localhost:8000/upload/edit/${file.id}`, {
+        method: "PUT",
+        body: formData,
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        alert("แก้ไขไฟล์สำเร็จ");
+        
+        // อัพเดทรายการไฟล์ในหน้าเว็บทันที
+        petitionFiles = petitionFiles.map(pf => {
+          if (pf.id === file.id) {
+            return {
+              ...pf,
+              name: data.file.name,
+              md5: data.file.md5,
+              extension: data.file.extension
+            };
+          }
+          return pf;
+        });
+
+        // Redirect กลับไปที่หน้า director พร้อม id
+        goto(`/considerations/subcommittee/director?id=${petitions.id}`);
+      } else {
+        alert("เกิดข้อผิดพลาดในการแก้ไขไฟล์");
+      }
+    } catch (error) {
+      console.error("Error:", error);
+      alert("เกิดข้อผิดพลาดในการแก้ไขไฟล์");
+    }
+  }
+
+  async function getPetitionFiles() {
+    const id = $page.url.searchParams.get("id");
+    if (!id) return;
+
+    try {
+      const response = await fetch(
+        `http://localhost:8000/petitions/files?petitionId=${id}`
+      );
+      if (response.ok) {
+        const data = await response.json();
+        petitionFiles = data.files;
+        console.log("Petition files:", petitionFiles);
+      } else {
+        console.error("Failed to fetch petition files");
+      }
+    } catch (error) {
+      console.error("Error:", error);
+    }
+  }
+
   // เพิ่มตัวแปรสำหรับเก็บค่าที่เลือก
   let selectedObjective: string = "";
   let selectedGrant: string = "";
@@ -142,26 +235,6 @@
         });
       } else {
         console.error("Failed to fetch petition");
-      }
-    } catch (error) {
-      console.error("Error:", error);
-    }
-  }
-
-  async function getPetitionFiles() {
-    const id = $page.url.searchParams.get("id");
-    if (!id) return;
-
-    try {
-      const response = await fetch(
-        `http://localhost:8000/petitions/files?petitionId=${id}`
-      );
-      if (response.ok) {
-        const data = await response.json();
-        petitionFiles = data.files;
-        console.log("Petition files:", petitionFiles);
-      } else {
-        console.error("Failed to fetch petition files");
       }
     } catch (error) {
       console.error("Error:", error);
@@ -257,7 +330,7 @@
 
       if (response.ok) {
         alert("บันทึกการพิจารณาเรียบร้อยแล้ว");
-        window.location.href = "/considerations/subcommittee";
+        window.location.href = "/considerations/committee";
       } else {
         alert("เกิดข้อผิดพลาดในการบันทึก");
       }
@@ -267,6 +340,13 @@
     }
   }
 </script>
+
+<svelte:head>
+  <link
+    rel="stylesheet"
+    href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css"
+  />
+</svelte:head>
 
 <div class="form-container">
   <div class="header">
@@ -553,7 +633,7 @@
     </div>
 
     <div class="document-table">
-      <h3>โดยได้แนบเอกสารประกอบการพิจารณา จำนวน 2 ชุด ดังนี้</h3>
+      <h3>เอกสารประกอบการพิจารณา</h3>
       <table>
         <thead>
           <tr>
@@ -569,18 +649,52 @@
             <td class="border px-4 py-2">
               {#if petitionFiles.filter((f) => f.documentTypeId === 1).length > 0}
                 {#each petitionFiles.filter((f) => f.documentTypeId === 1) as file}
-                  <div class="file-info">
-                    <span
-                      class="file-name cursor-pointer"
-                      on:click={() => openFile(file.name)}
-                    >
-                      {file.md5}{file.extension}
-                    </span>
+                  <div class="file-container">
+                    <div class="file-info">
+                      <i class="fas fa-file-alt file-icon"></i>
+                      <span
+                        class="file-name cursor-pointer"
+                        on:click={() => openFile(file.name)}
+                      >
+                        {file.md5}{file.extension}
+                      </span>
+                    </div>
+                    <div class="file-actions">
+                      <input
+                        type="file"
+                        style="display: none"
+                        on:change={(e: Event) => {
+                          const target = e.target as HTMLInputElement;
+                          if (target && target.files && target.files[0]) {
+                            handleFileEdit(file, target.files[0]);
+                          }
+                        }}
+                        id="edit-file-{file.id}"
+                      />
+                      <button
+                        class="action-button edit-button"
+                        on:click={() => {
+                          const element = document.getElementById(`edit-file-${file.id}`);
+                          if (element) element.click();
+                        }}
+                      >
+                        <i class="fas fa-edit"></i>
+                        แก้ไข
+                      </button>
+                    </div>
                   </div>
                 {/each}
               {:else}
-                <div>ไม่มีข้อมูลเอกสาร</div>
+                <div class="no-file">ไม่มีข้อมูลเอกสาร</div>
               {/if}
+              <div class="upload-section">
+                <input
+                  type="file"
+                  style="display: none"
+                  on:change={(e) => handleFileUpload(e, 1)}
+                  id="upload-file-1"
+                />
+              </div>
             </td>
           </tr>
           <tr>
@@ -590,41 +704,107 @@
             <td class="border px-4 py-2">
               {#if petitionFiles.filter((f) => f.documentTypeId === 2).length > 0}
                 {#each petitionFiles.filter((f) => f.documentTypeId === 2) as file}
-                  <div class="file-info">
-                    <span
-                      class="file-name cursor-pointer"
-                      on:click={() => openFile(file.name)}
-                    >
-                      {file.md5}{file.extension}
-                    </span>
+                  <div class="file-container">
+                    <div class="file-info">
+                      <i class="fas fa-file-alt file-icon"></i>
+                      <span
+                        class="file-name cursor-pointer"
+                        on:click={() => openFile(file.name)}
+                      >
+                        {file.md5}{file.extension}
+                      </span>
+                    </div>
+                    <div class="file-actions">
+                      <input
+                        type="file"
+                        style="display: none"
+                        on:change={(e: Event) => {
+                          const target = e.target as HTMLInputElement;
+                          if (target && target.files && target.files[0]) {
+                            handleFileEdit(file, target.files[0]);
+                          }
+                        }}
+                        id="edit-file-{file.id}"
+                      />
+                      <button
+                        class="action-button edit-button"
+                        on:click={() => {
+                          const element = document.getElementById(`edit-file-${file.id}`);
+                          if (element) element.click();
+                        }}
+                      >
+                        <i class="fas fa-edit"></i>
+                        แก้ไข
+                      </button>
+                    </div>
                   </div>
                 {/each}
               {:else}
-                <div>ไม่มีข้อมูลเอกสาร</div>
+                <div class="no-file">ไม่มีข้อมูลเอกสาร</div>
               {/if}
+              <div class="upload-section">
+                <input
+                  type="file"
+                  style="display: none"
+                  on:change={(e) => handleFileUpload(e, 2)}
+                  id="upload-file-2"
+                />
+              </div>
             </td>
           </tr>
           <tr>
             <td class="border px-4 py-2"
-              >3.
-              เอกสารผ่านการอบรมจริยธรรมการวิจัยของผู้วิจัยและผู้ร่วมโครงการวิจัย
-              (ถ้ามี)</td
+              >3. เอกสารผ่านการอบรมจริยธรรมการวิจัย (ถ้ามี)</td
             >
             <td class="border px-4 py-2">
               {#if petitionFiles.filter((f) => f.documentTypeId === 4).length > 0}
                 {#each petitionFiles.filter((f) => f.documentTypeId === 4) as file}
-                  <div class="file-info">
-                    <span
-                      class="file-name cursor-pointer"
-                      on:click={() => openFile(file.name)}
-                    >
-                      {file.md5}{file.extension}
-                    </span>
+                  <div class="file-container">
+                    <div class="file-info">
+                      <i class="fas fa-file-alt file-icon"></i>
+                      <span
+                        class="file-name cursor-pointer"
+                        on:click={() => openFile(file.name)}
+                      >
+                        {file.md5}{file.extension}
+                      </span>
+                    </div>
+                    <div class="file-actions">
+                      <input
+                        type="file"
+                        style="display: none"
+                        on:change={(e: Event) => {
+                          const target = e.target as HTMLInputElement;
+                          if (target && target.files && target.files[0]) {
+                            handleFileEdit(file, target.files[0]);
+                          }
+                        }}
+                        id="edit-file-{file.id}"
+                      />
+                      <button
+                        class="action-button edit-button"
+                        on:click={() => {
+                          const element = document.getElementById(`edit-file-${file.id}`);
+                          if (element) element.click();
+                        }}
+                      >
+                        <i class="fas fa-edit"></i>
+                        แก้ไข
+                      </button>
+                    </div>
                   </div>
                 {/each}
               {:else}
-                <div>ไม่มีข้อมูลเอกสาร</div>
+                <div class="no-file">ไม่มีข้อมูลเอกสาร</div>
               {/if}
+              <div class="upload-section">
+                <input
+                  type="file"
+                  style="display: none"
+                  on:change={(e) => handleFileUpload(e, 4)}
+                  id="upload-file-4"
+                />
+              </div>
             </td>
           </tr>
           <tr>
@@ -634,60 +814,128 @@
             <td class="border px-4 py-2">
               {#if petitionFiles.filter((f) => f.documentTypeId === 9).length > 0}
                 {#each petitionFiles.filter((f) => f.documentTypeId === 9) as file}
-                  <div class="file-info">
-                    <span
-                      class="file-name cursor-pointer"
-                      on:click={() => openFile(file.name)}
-                    >
-                      {file.md5}{file.extension}
-                    </span>
+                  <div class="file-container">
+                    <div class="file-info">
+                      <i class="fas fa-file-alt file-icon"></i>
+                      <span
+                        class="file-name cursor-pointer"
+                        on:click={() => openFile(file.name)}
+                      >
+                        {file.md5}{file.extension}
+                      </span>
+                    </div>
+                    <div class="file-actions">
+                      <input
+                        type="file"
+                        style="display: none"
+                        on:change={(e: Event) => {
+                          const target = e.target as HTMLInputElement;
+                          if (target && target.files && target.files[0]) {
+                            handleFileEdit(file, target.files[0]);
+                          }
+                        }}
+                        id="edit-file-{file.id}"
+                      />
+                      <button
+                        class="action-button edit-button"
+                        on:click={() => {
+                          const element = document.getElementById(`edit-file-${file.id}`);
+                          if (element) element.click();
+                        }}
+                      >
+                        <i class="fas fa-edit"></i>
+                        แก้ไข
+                      </button>
+                    </div>
                   </div>
                 {/each}
               {:else}
-                <div>ไม่มีข้อมูลเอกสาร</div>
+                <div class="no-file">ไม่มีข้อมูลเอกสาร</div>
               {/if}
+              <div class="upload-section">
+                <input
+                  type="file"
+                  style="display: none"
+                  on:change={(e) => handleFileUpload(e, 9)}
+                  id="upload-file-9"
+                />
+              </div>
             </td>
           </tr>
           <tr>
             <td class="border px-4 py-2"
-              >5. แบบสอบถาม (Questionnaire) (ถ้ามี)
-            </td>
+              >5. แบบสอบถาม (Questionnaire) (ถ้ามี)</td
+            >
             <td class="border px-4 py-2">
               {#if petitionFiles.filter((f) => f.documentTypeId === 10).length > 0}
                 {#each petitionFiles.filter((f) => f.documentTypeId === 10) as file}
-                  <div class="file-info">
-                    <span
-                      class="file-name cursor-pointer"
-                      on:click={() => openFile(file.name)}
-                    >
-                      {file.md5}{file.extension}
-                    </span>
+                  <div class="file-container">
+                    <div class="file-info">
+                      <i class="fas fa-file-alt file-icon"></i>
+                      <span
+                        class="file-name cursor-pointer"
+                        on:click={() => openFile(file.name)}
+                      >
+                        {file.md5}{file.extension}
+                      </span>
+                    </div>
+                    <div class="file-actions">
+                      <input
+                        type="file"
+                        style="display: none"
+                        on:change={(e: Event) => {
+                          const target = e.target as HTMLInputElement;
+                          if (target && target.files && target.files[0]) {
+                            handleFileEdit(file, target.files[0]);
+                          }
+                        }}
+                        id="edit-file-{file.id}"
+                      />
+                      <button
+                        class="action-button edit-button"
+                        on:click={() => {
+                          const element = document.getElementById(`edit-file-${file.id}`);
+                          if (element) element.click();
+                        }}
+                      >
+                        <i class="fas fa-edit"></i>
+                        แก้ไข
+                      </button>
+                    </div>
                   </div>
                 {/each}
               {:else}
-                <div>ไม่มีข้อมูลเอกสาร</div>
+                <div class="no-file">ไม่มีข้อมูลเอกสาร</div>
               {/if}
+              <div class="upload-section">
+                <input
+                  type="file"
+                  style="display: none"
+                  on:change={(e) => handleFileUpload(e, 10)}
+                  id="upload-file-10"
+                />
+              </div>
             </td>
           </tr>
         </tbody>
       </table>
+    </div>
 
-      <div class="evaluation-section">
-        <h3>ข้อเสนอแนะ</h3>
-        <div class="evaluation-fields">
-          <div class="field-group">
-            <label>ข้อเสนอแนะเพิ่มเติม</label>
-            <textarea
-              class="evaluation-textarea"
-              bind:value={petitions.note}
-              placeholder="กรุณาระบุข้อเสนอแนะเพิ่มเติม"
-            ></textarea>
-          </div>
+    <div class="evaluation-section">
+      <h3>ข้อเสนอแนะ</h3>
+      <div class="evaluation-fields">
+        <div class="field-group">
+          <label >ข้อเสนอแนะเพิ่มเติม</label>
+          <textarea
+            class="evaluation-textarea"
+            bind:value={petitions.note}
+            placeholder="กรุณาระบุข้อเสนอแนะเพิ่มเติม"
+          ></textarea>
         </div>
-        <div class="form-actions">
-          <button type="submit" on:click={handleSubmit}>ผ่านการพิจารณา</button>
-          <button type="button"on:click={handleUpdate}>ไม่ผ่านการพิจารณา</button>
-        </div>
+      </div>
+      <div class="form-actions">
+        <button type="submit" on:click={handleSubmit}>ผ่านการพิจารณา</button>
+        <button type="button"on:click={handleUpdate}>ไม่ผ่านการพิจารณา</button>
       </div>
     </div>
   </form>
@@ -941,19 +1189,82 @@
     flex: 1;
   }
 
+  .file-container {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px;
+    margin: 4px 0;
+    border: 1px solid #e0e0e0;
+    border-radius: 4px;
+    background-color: #f8f9fa;
+  }
+
   .file-info {
     display: flex;
     align-items: center;
-    gap: 10px;
+    gap: 8px;
+  }
+
+  .file-icon {
+    color: #2196F3;
   }
 
   .file-name {
-    color: #0066cc;
+    color: #2196F3;
     text-decoration: underline;
     cursor: pointer;
+    font-size: 0.9rem;
+  }
+
+  .file-actions {
+    display: flex;
+    gap: 8px;
+  }
+
+  .action-button {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 12px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 0.9rem;
+    transition: all 0.2s ease;
+  }
+
+  .edit-button {
+    background-color: #2196F3;
+    color: white;
+  }
+
+  .edit-button:hover {
+    background-color: #1976D2;
+  }
+
+  .upload-button {
+    background-color: #4CAF50;
+    color: white;
+  }
+
+  .upload-button:hover {
+    background-color: #388E3C;
+  }
+
+  .upload-section {
+    margin-top: 12px;
+    display: flex;
+    justify-content: flex-end;
+  }
+
+  .no-file {
+    color: #666;
+    font-style: italic;
+    padding: 8px;
   }
 
   .file-name:hover {
-    color: #003d7a;
+    color: #1565C0;
   }
 </style>
