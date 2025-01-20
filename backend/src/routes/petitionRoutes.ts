@@ -1,5 +1,15 @@
 import { Hono } from "hono";
-import { getAllPetitions, addPetition, getPetitionById,getlatestpetition,updatePetition,searchPetitionsByPhoneNumber,getPetitionFilesByPetitionId, openFile } from "../controllers/petitionController";
+import {
+  getAllPetitions,
+  addPetition,
+  getPetitionById,
+  getlatestpetition,
+  updatePetition,
+  searchPetitionsByPhoneNumber,
+  getPetitionFilesByPetitionId,
+  openFile,
+} from "../controllers/petitionController";
+
 
 const petitionRoutes = new Hono();
 
