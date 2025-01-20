@@ -1,7 +1,2 @@
-<h2>Services</h2>
-<p>Here are the services we offer:</p>
-<ul>
-  <li>Web Development</li>
-  <li>UI/UX Design</li>
-  <li>Consulting 0000</li>
-</ul>
+<img src="/images/flowchart.webp" alt="Description of flowchart" />
+<a href="/manual67.pdf" target="_blank">ดาวนโหลดเอกสาร</a>

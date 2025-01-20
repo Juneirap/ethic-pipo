@@ -1,6 +1,6 @@
 <script lang="ts">
   import "../app.css";
-  import '@fortawesome/fontawesome-free/css/all.min.css';
+  import "@fortawesome/fontawesome-free/css/all.min.css";
 
   import Header from "../components/Header.svelte";
   import Sidebar from "../components/Sidebar.svelte";
@@ -17,6 +17,11 @@
   const navLinks: Link[] = [
     { href: "/home", text: "หน้าหลัก", icon: "fa-solid fa-house" },
     {
+      href: "/documents",
+      text: "เอกสารคำขอ",
+      icon: "fa-solid fa-info-circle",
+    },
+    {
       href: "/services",
       text: "บริการ",
       icon: "fa-solid fa-cogs",
@@ -31,18 +36,14 @@
           text: "ติดตามการพิจารณา",
           icon: "fa-solid fa-file",
         },
-        {
-          href: "/services/check",
-          text: "ตรวจสอบระยะเวลาคุ้มครอง",
-          icon: "fa-solid fa-file",
-        },
+        // {
+        //   href: "/services/check",
+        //   text: "ตรวจสอบระยะเวลาคุ้มครอง",
+        //   icon: "fa-solid fa-file",
+        // },
       ],
     },
-    {
-      href: "/about",
-      text: "ขั้นตอนดำเนินงาน",
-      icon: "fa-solid fa-info-circle",
-    },
+
     { href: "/contact", text: "ติดต่อ", icon: "fa-solid fa-phone" },
     {
       href: "",
