@@ -1,10 +1,8 @@
 <script lang="ts">
   import { onMount } from "svelte";
-  import { page } from "$app/stores";
 
   // สร้างตัวแปรสำหรับวันที่ปัจจุบัน
   let currentDate = new Date().toISOString().split("T")[0];
-  let petitionId = $page.url.searchParams.get("id");
 
   // Prename data
   let prenames: Array<{
@@ -147,6 +145,9 @@
     grantOther: "",
     typeId: undefined,
     researcherId: undefined,
+    statusId: 1,
+    currentLevelId: 1,
+    staffId: "1",
     note: "",
   };
 
@@ -167,7 +168,7 @@
 
   let documentTypes: any[] = [];
   let uploadedFiles: { [key: number]: { name: string; file: File } } = {};
-  let petitionFiles: any[] = [];
+  let petitionId: number | null = null;
 
   async function fetchDocumentTypes() {
     try {
@@ -184,159 +185,48 @@
     }
   }
 
-  async function handleFileUpload(event: Event, documentTypeId: number) {
+  async function handleFileUpload(event: Event, documentId: number) {
     const input = event.target as HTMLInputElement;
-    const file = input.files?.[0];
-    if (!file) return;
-
-    if (!petitionId) return;
-
-    try {
-      const formData = new FormData();
-      formData.append("file", file);
-      formData.append("petitionId", petitionId);
-      formData.append("documentTypeId", documentTypeId.toString());
-
-      const response = await fetch("http://localhost:8000/upload", {
-        method: "POST",
-        body: formData,
-      });
-
-      if (response.ok) {
-        const data = await response.json();
-        alert("อัพโหลดไฟล์สำเร็จ");
-        
-        // อัพเดทรายการไฟล์ในหน้าเว็บทันที
-        if (data.file) {
-          petitionFiles = [
-            ...petitionFiles,
-            {
-              id: data.file.id,
-              name: data.file.name,
-              extension: data.file.extension,
-              md5: data.file.md5,
-              petitionId: parseInt(petitionId),
-              documentTypeId: documentTypeId,
-              documentType: {
-                id: documentTypeId,
-                description: "" // ถ้าต้องการแสดง description ต้องส่งมาจาก backend ด้วย
-              }
-            }
-          ];
-        }
-      } else {
-        alert("เกิดข้อผิดพลาดในการอัพโหลดไฟล์");
-      }
-    } catch (error) {
-      console.error("Error:", error);
-      alert("เกิดข้อผิดพลาดในการอัพโหลดไฟล์");
+    const files = input.files;
+    if (files && files.length > 0) {
+      uploadedFiles[documentId] = {
+        name: files[0].name,
+        file: files[0],
+      };
     }
-  }
-
-  async function handleFileEdit(file: PetitionFile, newFile: File) {
-    try {
-      const formData = new FormData();
-      formData.append("file", newFile);
-      
-      const response = await fetch(`http://localhost:8000/upload/edit/${file.id}`, {
-        method: "PUT",
-        body: formData,
-      });
-
-      if (response.ok) {
-        const data = await response.json();
-        alert("แก้ไขไฟล์สำเร็จ");
-        
-        // อัพเดทรายการไฟล์ในหน้าเว็บทันที
-        petitionFiles = petitionFiles.map(pf => {
-          if (pf.id === file.id) {
-            return {
-              ...pf,
-              name: data.file.name,
-              md5: data.file.md5,
-              extension: data.file.extension
-            };
-          }
-          return pf;
-        });
-      } else {
-        alert("เกิดข้อผิดพลาดในการแก้ไขไฟล์");
-      }
-    } catch (error) {
-      console.error("Error:", error);
-      alert("เกิดข้อผิดพลาดในการแก้ไขไฟล์");
-    }
-  }
-
-  function validateFormData() {
-    const validations = [
-      {
-        condition: !researcherData.prenameId || !researcherData.name || !researcherData.surname,
-        message: "กรุณากรอกข้อมูลคำนำหน้า ชื่อ และนามสกุล"
-      },
-      {
-        condition: !researcherData.telNo || !researcherData.email,
-        message: "กรุณากรอกเบอร์โทรศัพท์และอีเมล"
-      },
-      {
-        condition: !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(researcherData.email),
-        message: "กรุณากรอกอีเมลให้ถูกต้อง"
-      },
-      {
-        condition: !departmentSearchTerm || !selectedFaculty,
-        message: "กรุณาเลือกสำนักวิชาและคณะ"
-      },
-      {
-        condition: !formData.title_th || !formData.title_en,
-        message: "กรุณากรอกชื่อเรื่องภาษาไทยและภาษาอังกฤษ"
-      },
-      {
-        condition: !selectedObjective,
-        message: "กรุณาเลือกวัตถุประสงค์"
-      },
-      {
-        condition: selectedObjective === 3 && !formData.objectiveOther,
-        message: "กรุณาระบุวัตถุประสงค์อื่นๆ"
-      },
-      {
-        condition: !selectedGrant,
-        message: "กรุณาเลือกแหล่งทุน"
-      },
-      {
-        condition: selectedGrant === 3 && !formData.grantOther,
-        message: "กรุณาระบุแหล่งทุนภายนอก"
-      },
-      {
-        condition: !selectedType,
-        message: "กรุณาเลือกประเภทโครงการวิจัย"
-      }
-    ];
-
-    for (const validation of validations) {
-      if (validation.condition) {
-        alert(validation.message);
-        return false;
-      }
-    }
-
-    // ตรวจสอบเฉพาะไฟล์เอกสารที่จำเป็น
-    let requiredDocuments = [1, 2]; // เฉพาะเอกสารลำดับที่ 1 และ 2 ที่จำเป็นต้องมี
-    for (const docId of requiredDocuments) {
-      if (!uploadedFiles[docId]) {
-        alert(`กรุณาอัพโหลดเอกสารลำดับที่ ${docId} (จำเป็นต้องมี)`);
-        return false;
-      }
-    }
-
-    return true;
   }
 
   async function handleSubmit(event: Event) {
     event.preventDefault();
 
     try {
-      // ตรวจสอบความถูกต้องของข้อมูล
-      if (!validateFormData()) {
+      // ตรวจสอบข้อมูลที่จำเป็น
+      if (
+        !researcherData.prenameId ||
+        !researcherData.name ||
+        !researcherData.surname
+      ) {
+        alert("กรุณากรอกข้อมูลคำนำหน้า ชื่อ และนามสกุล");
+        return;
+      }
+
+      if (!formData.title_th || !formData.title_en) {
+        alert("กรุณากรอกชื่อเรื่องภาษาไทยและภาษาอังกฤษ");
+        return;
+      }
+
+      if (!selectedObjective) {
+        alert("กรุณาเลือกวัตถุประสงค์");
+        return;
+      }
+
+      if (!selectedGrant) {
+        alert("กรุณาเลือกแหล่งทุน");
+        return;
+      }
+
+      if (!selectedType) {
+        alert("กรุณาเลือกประเภทโครงการวิจัย");
         return;
       }
 
@@ -514,83 +404,7 @@
     }
   }
 
-  async function getPetitionById() {
-    if (!petitionId) return;
-
-    try {
-      const response = await fetch(`http://localhost:8000/petitions?id=${petitionId}`);
-      if (response.ok) {
-        const data = await response.json();
-        formData = data;
-        researcherData = {
-          prenameId: data.researcher.prenameId.toString(),
-          name: data.researcher.name,
-          surname: data.researcher.surname,
-          departmentId: data.researcher.departmentId.toString(),
-          telNo: data.researcher.telNo,
-          email: data.researcher.email,
-        };
-        selectedResearcher = data.researcher;
-        selectedFaculty = data.researcher.faculty;
-        departmentSearchTerm = data.researcher.department;
-        researcherSearchTerm = data.researcher.name;
-        selectedObjective = data.objectiveId;
-        selectedGrant = data.grantId;
-        selectedType = data.typeId;
-        petitionFiles = data.files;
-      } else {
-        console.error("Failed to fetch petition by ID");
-      }
-    } catch (error) {
-      console.error("Error fetching petition by ID:", error);
-    }
-  }
-
-  async function getPetitionFiles() {
-    if (!petitionId) return;
-
-    try {
-      const response = await fetch(
-        `http://localhost:8000/petitions/files?petitionId=${petitionId}`
-      );
-      if (response.ok) {
-        const data = await response.json();
-        petitionFiles = data;
-      } else {
-        console.error("Failed to fetch petition files");
-      }
-    } catch (error) {
-      console.error("Error fetching petition files:", error);
-    }
-  }
-
-  async function handleUpdate(event: Event) {
-    event.preventDefault();
-    if (!petitionId) return;
-
-    try {
-      const response = await fetch(`http://localhost:8000/petitions?id=${petitionId}`, {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(formData),
-      });
-
-      if (response.ok) {
-        alert("อัพเดตข้อมูลสำเร็จ");
-      } else {
-        alert("เกิดข้อผิดพลาดในการอัพเดตข้อมูล");
-      }
-    } catch (error) {
-      console.error("Error updating petition:", error);
-      alert("เกิดข้อผิดพลาดในการอัพเดตข้อมูล");
-    }
-  }
-
   fetchDocumentTypes();
-  getPetitionById();
-  getPetitionFiles();
 </script>
 
 <div class="form-container">
@@ -866,12 +680,7 @@
           <tbody>
             {#each documentTypes as doc}
               <tr>
-                <td>
-                  {doc.id}. {doc.description}
-                  {#if [1, 2].includes(doc.id)}
-                    <span class="required">*</span>
-                  {/if}
-                </td>
+                <td>{doc.id}. {doc.description}</td>
                 <td>
                   <div class="upload-container">
                     <label
@@ -884,9 +693,7 @@
                           >{uploadedFiles[doc.id].name}</span
                         >
                       {:else}
-                        <span class="no-file">
-                          {[1, 2].includes(doc.id) ? 'No file chosen (Required)' : 'No file chosen (Optional)'}
-                        </span>
+                        <span class="no-file">No file chosen</span>
                       {/if}
                     </label>
                     <input
@@ -906,9 +713,6 @@
     </div>
     <div class="form-actions">
       <button type="submit">ส่งเอกสารขออนุมัติทำการวิจัย</button>
-      {#if petitionId}
-        <button type="button" on:click={handleUpdate}>อัพเดตข้อมูล</button>
-      {/if}
     </div>
   </form>
 </div>
@@ -1194,16 +998,7 @@
     color: #666;
   }
 
-  .no-file.required {
-    color: #ff4444;
-  }
-
   .upload-input {
     display: none;
-  }
-
-  .required {
-    color: red;
-    margin-left: 5px;
   }
 </style>

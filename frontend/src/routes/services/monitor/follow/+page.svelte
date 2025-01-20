@@ -590,7 +590,7 @@
                         class="file-name cursor-pointer"
                         on:click={() => openFile(file.name)}
                       >
-                        {file.md5}{file.extension}
+                        {file.name}{file.extension}
                       </span>
                     </div>
                     <div class="file-actions">
@@ -645,7 +645,7 @@
                         class="file-name cursor-pointer"
                         on:click={() => openFile(file.name)}
                       >
-                        {file.md5}{file.extension}
+                        {file.name}{file.extension}
                       </span>
                     </div>
                     <div class="file-actions">
