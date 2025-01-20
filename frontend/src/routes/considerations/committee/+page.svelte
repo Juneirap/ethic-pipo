@@ -1,24 +1,24 @@
 <script lang="ts">
-  import { onMount } from 'svelte';
-  import { goto } from '$app/navigation';
-  
+  import { onMount } from "svelte";
+  import { goto } from "$app/navigation";
+
   let petitions = [];
 
   // ฟังก์ชันดึงข้อมูล petitions ทั้งหมดและแสดงข้อมูลที่มี currentLevelId = 1
   async function fetchPetitions() {
     try {
-      const response = await fetch('http://localhost:8000/petitions/all');
+      const response = await fetch("http://localhost:8000/petitions/all");
       if (response.ok) {
         const allPetitions = await response.json();
         // กรองเฉพาะ petitions ที่มี currentLevelId เป็น 1
-        petitions = allPetitions.filter(petition => {
+        petitions = allPetitions.filter((petition) => {
           return petition.currentLevelId === 2;
         });
       } else {
-        console.error('Failed to fetch petitions');
+        console.error("Failed to fetch petitions");
       }
     } catch (error) {
-      console.error('Error fetching petitions:', error);
+      console.error("Error fetching petitions:", error);
     }
   }
 
@@ -31,12 +31,12 @@
   onMount(() => {
     fetchPetitions();
   });
-
-
 </script>
 
 <div class="container mx-auto px-4 py-8">
-  <h1 class="text-2xl font-bold mb-4">รายการคำร้องขอจริยธรรมการวิจัยในมนุษย์  (ขั้นกรรมการ)</h1>
+  <h1 class="text-2xl font-bold mb-4">
+    รายการคำร้องขอจริยธรรมการวิจัยในมนุษย์ (ขั้นกรรมการ)
+  </h1>
 
   <div class="table-container">
     <table class="min-w-full bg-white">
@@ -54,7 +54,9 @@
       <tbody class="text-gray-600 text-sm font-light">
         {#if petitions.length === 0}
           <tr>
-            <td colspan="7" class="py-8 text-center text-gray-500">ไม่พบข้อมูลคำร้อง</td>
+            <td colspan="7" class="py-8 text-center text-gray-500"
+              >ไม่พบข้อมูลคำร้อง</td
+            >
           </tr>
         {:else}
           {#each petitions as petition, index}
@@ -72,7 +74,9 @@
                 {petition.currentLevel}
               </td>
               <td class="py-3 px-6 text-left">
-                {petition.status}
+                <div class="badge badge-danger badge-outline">
+                  {petition.status}
+                </div>
               </td>
               <td class="py-3 px-6 text-left">
                 {petition.created_at}

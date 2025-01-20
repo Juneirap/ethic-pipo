@@ -1,23 +1,23 @@
 <script lang="ts">
-  import { onMount } from 'svelte';
-  import { goto } from '$app/navigation';
-  
+  import { onMount } from "svelte";
+  import { goto } from "$app/navigation";
+
   let petitions = [];
   let filteredPetitions = [];
-  let searchPhone = '';
+  let searchPhone = "";
 
   // ฟังก์ชันดึงข้อมูล petitions ทั้งหมด
   async function fetchPetitions() {
     try {
-      const response = await fetch('http://localhost:8000/petitions/all');
+      const response = await fetch("http://localhost:8000/petitions/all");
       if (response.ok) {
         petitions = await response.json();
         filteredPetitions = petitions;
       } else {
-        console.error('Failed to fetch petitions');
+        console.error("Failed to fetch petitions");
       }
     } catch (error) {
-      console.error('Error fetching petitions:', error);
+      console.error("Error fetching petitions:", error);
     }
   }
 
@@ -33,32 +33,36 @@
 
   async function searchPetitions() {
     try {
-      if (searchPhone.trim() === '') {
+      if (searchPhone.trim() === "") {
         // If search input is empty, show all petitions
         filteredPetitions = petitions;
         return;
       }
-      
-      const response = await fetch(`http://localhost:8000/petitions/search?telNo=${searchPhone}`);
+
+      const response = await fetch(
+        `http://localhost:8000/petitions/search?telNo=${searchPhone}`
+      );
       if (response.ok) {
         filteredPetitions = await response.json();
       } else {
-        console.error('Failed to fetch petitions');
+        console.error("Failed to fetch petitions");
       }
     } catch (error) {
-      console.error('Error fetching petitions:', error);
+      console.error("Error fetching petitions:", error);
     }
   }
 </script>
 
 <div class="container mx-auto px-4 py-8">
-  <h1 class="text-2xl font-bold mb-4">ติดตามการพิจารณาคำร้องขอจริยธรรมการวิจัยในมนุษย์</h1>
+  <h1 class="text-2xl font-bold mb-4">
+    ติดตามการพิจารณาคำร้องขอจริยธรรมการวิจัยในมนุษย์
+  </h1>
 
   <div class="mb-4 flex">
-    <input 
-      type="text" 
-      placeholder="ค้นหาโดยเบอร์โทร..." 
-      bind:value={searchPhone} 
+    <input
+      type="text"
+      placeholder="ค้นหาโดยเบอร์โทร..."
+      bind:value={searchPhone}
       on:input={searchPetitions}
       class="py-2 px-4 border border-gray-300 rounded mr-4 w-64"
     />
@@ -80,7 +84,9 @@
       <tbody class="text-gray-600 text-sm font-light">
         {#if filteredPetitions.length === 0}
           <tr>
-            <td colspan="7" class="py-8 text-center text-gray-500">ไม่พบข้อมูลคำร้อง</td>
+            <td colspan="7" class="py-8 text-center text-gray-500"
+              >ไม่พบข้อมูลคำร้อง</td
+            >
           </tr>
         {:else}
           {#each filteredPetitions as petition}
@@ -98,7 +104,9 @@
                 {petition.currentLevel}
               </td>
               <td class="py-3 px-6 text-left">
-                {petition.status}
+                <div class="badge badge-danger badge-outline">
+                  {petition.status}
+                </div>
               </td>
               <td class="py-3 px-6 text-left">
                 {petition.created_at}
@@ -106,7 +114,8 @@
               <td class="py-3 px-6 text-center">
                 <button
                   class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
-                  on:click={() => goToDirectorPage(petition.id)}>ดูรายละเอียด</button
+                  on:click={() => goToDirectorPage(petition.id)}
+                  >รายละเอียด</button
                 >
               </td>
             </tr>
