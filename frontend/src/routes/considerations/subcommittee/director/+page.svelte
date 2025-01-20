@@ -339,6 +339,43 @@
       alert("เกิดข้อผิดพลาดในการบันทึก");
     }
   }
+
+  async function handleEdit(event: Event) {
+    event.preventDefault();
+    const id = $page.url.searchParams.get("id");
+    if (!id) return;
+
+    try {
+      const response = await fetch(`http://localhost:8000/petitions?id=${id}`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          objectiveId: petitions.objectiveId,
+          objectiveOther: petitions.objectiveOther,
+          grantId: petitions.grantId,
+          grantOther: petitions.grantOther,
+          typeId: petitions.typeId,
+          statusId: 4,
+          researcherId: petitions.researcherId,
+          currentLevelId: 1,
+          staffId: petitions.staffId,
+          note: petitions.note,
+        }),
+      });
+
+      if (response.ok) {
+        alert("บันทึกการพิจารณาเรียบร้อยแล้ว");
+        window.location.href = "/considerations/subcommittee";
+      } else {
+        alert("เกิดข้อผิดพลาดในการบันทึก");
+      }
+    } catch (error) {
+      console.error("Error:", error);
+      alert("เกิดข้อผิดพลาดในการบันทึก");
+    }
+  }
 </script>
 
 <svelte:head>
@@ -936,6 +973,7 @@
       <div class="form-actions">
         <button type="submit" on:click={handleSubmit}>ผ่านการพิจารณา</button>
         <button type="button"on:click={handleUpdate}>ไม่ผ่านการพิจารณา</button>
+        <button type="button"on:click={handleEdit}>ส่งเอกสารเพิ่มเติม</button>
       </div>
     </div>
   </form>
