@@ -34,8 +34,10 @@ export const getAllPetitions = async (c: any) => {
           title_en: petition.title_en,
           objective: petitionObjectiveType.description,
           grant: petitionGrant.description,
-          type: petitionType.description,
-          status: petitionStatus.description,
+          typeId: petitionType.id, // Add typeId
+          typeDescription: petitionType.description, // Add type description
+          statusId: petitionStatus.id, // Add statusId
+          statusDescription: petitionStatus.description, // Add status description
           researcher: sql`CONCAT(${researcher.name}, ' ', ${researcher.surname})`,
           currentLevel: petitionLevel.description,
           currentLevelId: petition.currentLevelId,
@@ -53,6 +55,7 @@ export const getAllPetitions = async (c: any) => {
       .leftJoin(petitionGrant, sql`${petition.grantId} = ${petitionGrant.id}`)
       .leftJoin(staff, sql`${petition.staffId} = ${staff.id}`)
       .leftJoin(researcher, sql`${petition.researcherId} = ${researcher.id}`);
+
     return c.json(allPetitions, 200);
   } catch (error) {
     console.error(error);

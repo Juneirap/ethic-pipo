@@ -225,7 +225,7 @@
         // อัพเดทการเลือกตามค่า ID
         selectedObjective = petition.objectiveId?.toString() || "";
         selectedGrant = petition.grantId?.toString() || "";
-        selectedType = petition.typeId?.toString() || "";
+        selectedType = petition.researchtypeId?.toString() || "";
 
         console.log("Updated petition:", petitions);
         console.log("Selected values:", {

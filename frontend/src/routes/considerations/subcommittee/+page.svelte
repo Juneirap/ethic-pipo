@@ -74,16 +74,24 @@
                 {petition.currentLevel}
               </td>
               <td class="py-3 px-6 text-left">
-                <div class="badge badge-danger badge-outline">
-                  {petition.status}
-                </div>
+                {#if petition.statusId === 1}
+                  <div class="badge badge-info badge-outline">{petition.statusDescription}</div> <!-- Changed to blue -->
+                {:else if petition.statusId === 2}
+                  <div class="badge badge-success badge-outline">{petition.statusDescription}</div>
+                {:else if petition.statusId === 3}
+                  <div class="badge badge-error badge-outline">{petition.statusDescription}</div>
+                {:else if petition.statusId === 4}
+                  <div class="badge badge-warning badge-outline">{petition.statusDescription}</div>
+                {:else}
+                  <div class="badge badge-danger badge-outline">{petition.statusDescription}</div> <!-- Default case if needed -->
+                {/if}
               </td>
               <td class="py-3 px-6 text-left">
                 {petition.created_at}
               </td>
               <td class="py-3 px-6 text-center">
                 <button
-                  class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
+                  class="btn btn-outline btn-primary"
                   on:click={() => goToDirectorPage(petition.id)}>ตรวจสอบ</button
                 >
               </td>
