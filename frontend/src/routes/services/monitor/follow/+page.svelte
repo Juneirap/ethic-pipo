@@ -272,7 +272,6 @@
     window.history.back();
   }
 
-  
 </script>
 
 <svelte:head>
@@ -590,7 +589,7 @@
                         class="file-name cursor-pointer"
                         on:click={() => openFile(file.name)}
                       >
-                        {file.name}{file.extension}
+                        {file.name}
                       </span>
                     </div>
                     <div class="file-actions">
@@ -645,7 +644,7 @@
                         class="file-name cursor-pointer"
                         on:click={() => openFile(file.name)}
                       >
-                        {file.name}{file.extension}
+                        {file.name}
                       </span>
                     </div>
                     <div class="file-actions">
@@ -700,7 +699,7 @@
                         class="file-name cursor-pointer"
                         on:click={() => openFile(file.name)}
                       >
-                        {file.md5}{file.extension}
+                        {file.name}
                       </span>
                     </div>
                     <div class="file-actions">
@@ -755,7 +754,7 @@
                         class="file-name cursor-pointer"
                         on:click={() => openFile(file.name)}
                       >
-                        {file.md5}{file.extension}
+                        {file.name}
                       </span>
                     </div>
                     <div class="file-actions">
@@ -810,7 +809,7 @@
                         class="file-name cursor-pointer"
                         on:click={() => openFile(file.name)}
                       >
-                        {file.md5}{file.extension}
+                        {file.name}
                       </span>
                     </div>
                     <div class="file-actions">

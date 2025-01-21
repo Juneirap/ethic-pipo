@@ -51,6 +51,10 @@
       console.error("Error fetching petitions:", error);
     }
   }
+
+  
+
+
 </script>
 
 <div class="container mx-auto px-4 py-8">

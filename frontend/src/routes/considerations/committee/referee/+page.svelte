@@ -656,7 +656,7 @@
                         class="file-name cursor-pointer"
                         on:click={() => openFile(file.name)}
                       >
-                        {file.md5}{file.extension}
+                        {file.name}
                       </span>
                     </div>
                     <div class="file-actions">
@@ -671,16 +671,6 @@
                         }}
                         id="edit-file-{file.id}"
                       />
-                      <button
-                        class="action-button edit-button"
-                        on:click={() => {
-                          const element = document.getElementById(`edit-file-${file.id}`);
-                          if (element) element.click();
-                        }}
-                      >
-                        <i class="fas fa-edit"></i>
-                        แก้ไข
-                      </button>
                     </div>
                   </div>
                 {/each}
@@ -711,7 +701,7 @@
                         class="file-name cursor-pointer"
                         on:click={() => openFile(file.name)}
                       >
-                        {file.md5}{file.extension}
+                        {file.name}
                       </span>
                     </div>
                     <div class="file-actions">
@@ -726,16 +716,6 @@
                         }}
                         id="edit-file-{file.id}"
                       />
-                      <button
-                        class="action-button edit-button"
-                        on:click={() => {
-                          const element = document.getElementById(`edit-file-${file.id}`);
-                          if (element) element.click();
-                        }}
-                      >
-                        <i class="fas fa-edit"></i>
-                        แก้ไข
-                      </button>
                     </div>
                   </div>
                 {/each}
@@ -766,7 +746,7 @@
                         class="file-name cursor-pointer"
                         on:click={() => openFile(file.name)}
                       >
-                        {file.md5}{file.extension}
+                        {file.name}
                       </span>
                     </div>
                     <div class="file-actions">
@@ -781,16 +761,6 @@
                         }}
                         id="edit-file-{file.id}"
                       />
-                      <button
-                        class="action-button edit-button"
-                        on:click={() => {
-                          const element = document.getElementById(`edit-file-${file.id}`);
-                          if (element) element.click();
-                        }}
-                      >
-                        <i class="fas fa-edit"></i>
-                        แก้ไข
-                      </button>
                     </div>
                   </div>
                 {/each}
@@ -821,7 +791,7 @@
                         class="file-name cursor-pointer"
                         on:click={() => openFile(file.name)}
                       >
-                        {file.md5}{file.extension}
+                        {file.name}
                       </span>
                     </div>
                     <div class="file-actions">
@@ -836,16 +806,6 @@
                         }}
                         id="edit-file-{file.id}"
                       />
-                      <button
-                        class="action-button edit-button"
-                        on:click={() => {
-                          const element = document.getElementById(`edit-file-${file.id}`);
-                          if (element) element.click();
-                        }}
-                      >
-                        <i class="fas fa-edit"></i>
-                        แก้ไข
-                      </button>
                     </div>
                   </div>
                 {/each}
@@ -876,7 +836,7 @@
                         class="file-name cursor-pointer"
                         on:click={() => openFile(file.name)}
                       >
-                        {file.md5}{file.extension}
+                        {file.name}
                       </span>
                     </div>
                     <div class="file-actions">
@@ -891,16 +851,6 @@
                         }}
                         id="edit-file-{file.id}"
                       />
-                      <button
-                        class="action-button edit-button"
-                        on:click={() => {
-                          const element = document.getElementById(`edit-file-${file.id}`);
-                          if (element) element.click();
-                        }}
-                      >
-                        <i class="fas fa-edit"></i>
-                        แก้ไข
-                      </button>
                     </div>
                   </div>
                 {/each}
