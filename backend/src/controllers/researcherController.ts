@@ -163,3 +163,44 @@ export const getlatestResearcher = async (c: any) => {
     );
   }
 };
+
+export const verifyResearcherByPhone = async (c: any) => {
+  try {
+    // รับค่าเบอร์โทรจาก query parameter
+    const telNo = c.req.query("telNo");
+
+    // ตรวจสอบว่ามีการส่งเบอร์โทรหรือไม่
+    if (!telNo) {
+      return c.json({ error: "Phone number is required." }, 400);
+    }
+
+    // ค้นหาข้อมูลในฐานข้อมูลโดยใช้เบอร์โทร
+    const researcherData = await db
+      .select({
+        id: researcher.id,
+        name: researcher.name,
+        telNo: researcher.telNo,
+      })
+      .from(researcher)
+      .where(sql`${researcher.telNo} = ${telNo}`)
+      .limit(1);
+
+    // หากไม่พบข้อมูลในฐานข้อมูล
+    if (!researcherData.length) {
+      return c.json({ error: "Phone number not found." }, 404);
+    }
+
+    // ส่งผลลัพธ์กลับหากการตรวจสอบสำเร็จ
+    return c.json(
+      { message: "Verification successful!", data: researcherData[0] },
+      200
+    );
+  } catch (error) {
+    console.error(error);
+    return c.json(
+      { error: "Failed to verify phone number.", details: (error as any).message },
+      500
+    );
+  }
+};
+

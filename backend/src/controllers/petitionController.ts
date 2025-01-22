@@ -392,3 +392,4 @@ export const openFile = async (c: any) => {
     return c.json({ message: 'Error opening file' }, 500);
   }
 };
+

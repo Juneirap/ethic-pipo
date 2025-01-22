@@ -1,8 +1,10 @@
 /** @type {import('tailwindcss').Config} */
-export default {
-  content: ["./src/**/*.{svelte,js,ts}"],
+module.exports = {
+  content: [
+    './src/**/*.{svelte,js,ts}',  // Path ของไฟล์ที่ใช้ Tailwind
+  ],
   theme: {
     extend: {},
   },
-  plugins: [require("daisyui")],
+  plugins: [require('daisyui')],
 };

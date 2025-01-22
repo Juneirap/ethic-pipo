@@ -5,44 +5,95 @@
   let petitions = [];
   let filteredPetitions = [];
   let searchPhone = "";
+  let isModalOpen = false; // ตัวแปรเพื่อควบคุมการแสดง popup
+  let selectedPetition = null; // ตัวแปรเพื่อเก็บข้อมูลคำร้องที่เลือก
+  let enteredPhone = ""; // ตัวแปรเพื่อเก็บเบอร์โทรที่กรอกใน popup
 
-  // ฟังก์ชันดึงข้อมูล petitions ทั้งหมด
   async function fetchPetitions() {
-    try {
-      const response = await fetch("http://localhost:8000/petitions/all");
-      if (response.ok) {
-        petitions = await response.json();
-        filteredPetitions = petitions;
-      } else {
-        console.error("Failed to fetch petitions");
-      }
-    } catch (error) {
-      console.error("Error fetching petitions:", error);
+  try {
+    const response = await fetch("http://localhost:8000/petitions/all");
+    if (response.ok) {
+      petitions = await response.json();
+      console.log("Fetched Petitions:", petitions); // ตรวจสอบข้อมูล
+      filteredPetitions = petitions;
+    } else {
+      console.error("Failed to fetch petitions");
     }
+  } catch (error) {
+    console.error("Error fetching petitions:", error);
   }
+}
+
 
   // ฟังก์ชันเปลี่ยนหน้า
   function goToDirectorPage(id: number) {
     goto(`monitor/follow?id=${id}`);
   }
 
+  // ฟังก์ชันเปิด popup
+  function openModal(petition) {
+    selectedPetition = petition; // เลือกคำร้องที่กด
+    isModalOpen = true; // เปิด popup
+  }
+
+  // ฟังก์ชันปิด popup
+  function closeModal() {
+    isModalOpen = false;
+    enteredPhone = ""; // เคลียร์เบอร์โทรที่กรอก
+  }
+
+  async function checkPhoneAndNavigate() {
+  // Clean and validate input
+  const cleanPhone = enteredPhone.trim();
+
+  if (!cleanPhone) {
+    alert("กรุณากรอกเบอร์โทร");
+    return;
+  }
+
+  try {
+    // เรียก API เพื่อยืนยันข้อมูล
+    const response = await fetch(
+      `http://localhost:8000/researchers/verify?telNo=${cleanPhone}`
+    );
+
+    if (response.ok) {
+      // หากข้อมูลถูกต้อง ไปยังหน้าถัดไป
+      const researcherData = await response.json();
+      console.log("Verified Researcher:", researcherData);
+      goToDirectorPage(selectedPetition.id); // ใช้ฟังก์ชันไปหน้าถัดไป
+      closeModal();
+    } else {
+      // หากข้อมูลไม่ถูกต้อง
+      alert("เบอร์โทรไม่ตรงกับระบบ กรุณาตรวจสอบอีกครั้ง");
+    }
+  } catch (error) {
+    console.error("Error verifying phone number:", error);
+    alert("เกิดข้อผิดพลาดในการตรวจสอบข้อมูล");
+  }
+}
+
   // เรียกใช้ฟังก์ชันเมื่อ component ถูกโหลด
   onMount(() => {
     fetchPetitions();
   });
 
+  // ฟังก์ชันค้นหาคำร้องตามเบอร์โทร
   async function searchPetitions() {
     try {
       if (searchPhone.trim() === "") {
-        // If search input is empty, show all petitions
+        // หากผู้ใช้ไม่ได้กรอกเบอร์โทรเลย แสดงคำร้องทั้งหมด
         filteredPetitions = petitions;
         return;
       }
 
+      // ส่งคำขอไปที่ API ด้วยเบอร์โทรที่กรอก
       const response = await fetch(
         `http://localhost:8000/petitions/search?telNo=${searchPhone}`
       );
+
       if (response.ok) {
+        // หาก API ตอบกลับด้วยคำร้องที่ตรงกับเบอร์โทร
         filteredPetitions = await response.json();
       } else {
         console.error("Failed to fetch petitions");
@@ -51,15 +102,11 @@
       console.error("Error fetching petitions:", error);
     }
   }
-
-  
-
-
 </script>
 
 <div class="container mx-auto px-4 py-8">
   <h1 class="text-2xl font-bold mb-4">
-    ติดตามการพิจารณาคำร้องขอจริยธรรมการวิจัยในมนุษย์
+    ติดตามการพิจารณาคำร้องขอจริยธรรมการวิจารณในมนุษย์
   </h1>
 
   <div class="mb-4 flex">
@@ -88,9 +135,7 @@
       <tbody class="text-gray-600 text-sm font-light">
         {#if filteredPetitions.length === 0}
           <tr>
-            <td colspan="7" class="py-8 text-center text-gray-500"
-              >ไม่พบข้อมูลคำร้อง</td
-            >
+            <td colspan="7" class="py-8 text-center text-gray-500">ไม่พบข้อมูลคำร้อง</td>
           </tr>
         {:else}
           {#each filteredPetitions as petition}
@@ -118,9 +163,10 @@
               <td class="py-3 px-6 text-center">
                 <button
                   class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
-                  on:click={() => goToDirectorPage(petition.id)}
-                  >รายละเอียด</button
+                  on:click={() => openModal(petition)}
                 >
+                  รายละเอียด
+                </button>
               </td>
             </tr>
           {/each}
@@ -129,6 +175,31 @@
     </table>
   </div>
 </div>
+
+{#if isModalOpen}
+  <div class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-10">
+    <div class="modal modal-open">
+      <div class="modal-box">
+        <h2 class="text-xl font-bold mb-4">กรุณากรอกเบอร์โทรของคุณ</h2>
+        <p>กรุณากรอกเบอร์โทรของคุณเพื่อดำเนินการต่อ</p>
+        
+        <label for="researcherPhone" class="block mt-2">เบอร์โทร</label>
+        <input
+          id="researcherPhone"
+          type="text"
+          placeholder="เบอร์โทร"
+          bind:value={enteredPhone}
+          class="input input-bordered w-full my-4"
+        />
+
+        <div class="modal-action">
+          <button class="btn" on:click={closeModal}>ยกเลิก</button>
+          <button class="btn btn-primary" on:click={checkPhoneAndNavigate}>ยืนยัน</button>
+        </div>
+      </div>
+    </div>
+  </div>
+{/if}
 
 <style>
   .container {
