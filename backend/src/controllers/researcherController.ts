@@ -1,5 +1,5 @@
 import conMysql from "../ultis/connectDB";
-import { researcher, prename, department , faculty} from "../db/schema";
+import { researcher, prename, department , faculty , petition } from "../db/schema";
 import { sql } from "drizzle-orm";
 
 const db = await conMysql();
@@ -159,6 +159,49 @@ export const getlatestResearcher = async (c: any) => {
     console.error(error);    
     return c.json(
       { error: "Failed to retrieve researcher.", details: (error as any).message },
+      500
+    );
+  }
+};
+
+export const verifyResearcherByPhoneAndPetition = async (c: any) => {
+  try {
+    // รับค่าเบอร์โทรและ petitionId จาก query parameter
+    const telNo = c.req.query("telNo");
+    const petitionId = c.req.query("petitionId");
+
+    // ตรวจสอบว่ามีการส่งค่า telNo และ petitionId หรือไม่
+    if (!telNo || !petitionId) {
+      return c.json({ error: "Phone number and Petition ID are required." }, 400);
+    }
+
+    // ค้นหาคำร้องและตรวจสอบว่าผู้วิจัยในคำร้องตรงกับเบอร์โทรที่ส่งเข้ามาหรือไม่
+    const petitionData = await db
+      .select({
+        petitionId: petition.id,
+        researcherId: petition.researcherId,
+        researcherName: researcher.name,
+        researcherTelNo: researcher.telNo,
+      })
+      .from(petition)
+      .leftJoin(researcher, sql`${petition.researcherId} = ${researcher.id}`)
+      .where(sql`${petition.id} = ${petitionId} AND ${researcher.telNo} = ${telNo}`)
+      .limit(1);
+
+    // หากไม่พบข้อมูลที่ตรงกัน
+    if (!petitionData.length) {
+      return c.json({ error: "หมายเลขโทรศัพท์ไม่ตรงกับผู้วิจัยในคำร้องนี้" }, 404);
+    }
+
+    // ส่งผลลัพธ์กลับหากการตรวจสอบสำเร็จ
+    return c.json(
+      { message: "การยืนยันสําเร็จ!", data: petitionData[0] },
+      200
+    );
+  } catch (error) {
+    console.error(error);
+    return c.json(
+      { error: "เกิดข้อผิดพลาดในการยืนยันหมายเลขโทรศัพท์และคำร้อง", details: (error as any).message },
       500
     );
   }
