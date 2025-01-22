@@ -54,8 +54,8 @@
   try {
     // เรียก API เพื่อยืนยันข้อมูล
     const response = await fetch(
-      `http://localhost:8000/researchers/verify?telNo=${cleanPhone}`
-    );
+  `http://localhost:8000/researchers/verify?telNo=${cleanPhone}&petitionId=${selectedPetition.id}`
+);
 
     if (response.ok) {
       // หากข้อมูลถูกต้อง ไปยังหน้าถัดไป

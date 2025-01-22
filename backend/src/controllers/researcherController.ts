@@ -1,5 +1,5 @@
 import conMysql from "../ultis/connectDB";
-import { researcher, prename, department , faculty} from "../db/schema";
+import { researcher, prename, department, faculty, petition } from "../db/schema";
 import { sql } from "drizzle-orm";
 
 const db = await conMysql();
@@ -164,43 +164,45 @@ export const getlatestResearcher = async (c: any) => {
   }
 };
 
-export const verifyResearcherByPhone = async (c: any) => {
+export const verifyResearcherByPhoneAndPetition = async (c: any) => {
   try {
-    // รับค่าเบอร์โทรจาก query parameter
+    // รับค่าเบอร์โทรและ petitionId จาก query parameter
     const telNo = c.req.query("telNo");
+    const petitionId = c.req.query("petitionId");
 
-    // ตรวจสอบว่ามีการส่งเบอร์โทรหรือไม่
-    if (!telNo) {
-      return c.json({ error: "Phone number is required." }, 400);
+    // ตรวจสอบว่ามีการส่งค่า telNo และ petitionId หรือไม่
+    if (!telNo || !petitionId) {
+      return c.json({ error: "Phone number and Petition ID are required." }, 400);
     }
 
-    // ค้นหาข้อมูลในฐานข้อมูลโดยใช้เบอร์โทร
-    const researcherData = await db
+    // ค้นหาคำร้องและตรวจสอบว่าผู้วิจัยในคำร้องตรงกับเบอร์โทรที่ส่งเข้ามาหรือไม่
+    const petitionData = await db
       .select({
-        id: researcher.id,
-        name: researcher.name,
-        telNo: researcher.telNo,
+        petitionId: petition.id,
+        researcherId: petition.researcherId,
+        researcherName: researcher.name,
+        researcherTelNo: researcher.telNo,
       })
-      .from(researcher)
-      .where(sql`${researcher.telNo} = ${telNo}`)
+      .from(petition)
+      .leftJoin(researcher, sql`${petition.researcherId} = ${researcher.id}`)
+      .where(sql`${petition.id} = ${petitionId} AND ${researcher.telNo} = ${telNo}`)
       .limit(1);
 
-    // หากไม่พบข้อมูลในฐานข้อมูล
-    if (!researcherData.length) {
-      return c.json({ error: "Phone number not found." }, 404);
+    // หากไม่พบข้อมูลที่ตรงกัน
+    if (!petitionData.length) {
+      return c.json({ error: "Phone number does not match the researcher for this petition." }, 404);
     }
 
     // ส่งผลลัพธ์กลับหากการตรวจสอบสำเร็จ
     return c.json(
-      { message: "Verification successful!", data: researcherData[0] },
+      { message: "Verification successful!", data: petitionData[0] },
       200
     );
   } catch (error) {
     console.error(error);
     return c.json(
-      { error: "Failed to verify phone number.", details: (error as any).message },
+      { error: "Failed to verify phone number and petition.", details: (error as any).message },
       500
     );
   }
 };
-
