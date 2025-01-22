@@ -24,6 +24,8 @@
 		"vite": "^5.4.11"
 	},
 	"dependencies": {
-		"@fortawesome/fontawesome-free": "^6.7.2"
+		"@fortawesome/fontawesome-free": "^6.7.2",
+		"jspdf": "^2.5.2",
+		"jspdf-autotable": "^3.8.4"
 	}
 }
