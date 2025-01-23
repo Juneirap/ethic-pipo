@@ -1,5 +1,8 @@
 <script lang="ts">
   import { onMount } from "svelte";
+  import jsPDF from "jspdf";
+  import "jspdf-autotable";
+  import { font } from "../form/Sarabun-Regular-normal.js";
 
   // สร้างตัวแปรสำหรับวันที่ปัจจุบัน
   let currentDate = new Date().toISOString().split("T")[0];
@@ -43,7 +46,7 @@
 
     try {
       const response = await fetch(
-        `http://localhost:8000/departments/name?name=${encodeURIComponent(term)}`
+        `http://localhost:8000/departments/name?name=${encodeURIComponent(term)}`,
       );
       if (response.ok) {
         departmentResults = await response.json();
@@ -93,7 +96,7 @@
 
     try {
       const response = await fetch(
-        `http://localhost:8000/researchers/name?name=${encodeURIComponent(term)}`
+        `http://localhost:8000/researchers/name?name=${encodeURIComponent(term)}`,
       );
       if (response.ok) {
         researcherResults = await response.json();
@@ -145,9 +148,6 @@
     grantOther: "",
     typeId: undefined,
     researcherId: undefined,
-    statusId: 1,
-    currentLevelId: 1,
-    staffId: "1",
     note: "",
   };
 
@@ -173,7 +173,7 @@
   async function fetchDocumentTypes() {
     try {
       const response = await fetch(
-        "http://localhost:8000/dataget/documenttype1_11"
+        "http://localhost:8000/dataget/documenttype1_11",
       );
       if (response.ok) {
         documentTypes = await response.json();
@@ -243,13 +243,13 @@
               "Content-Type": "application/json",
             },
             body: JSON.stringify(researcherData),
-          }
+          },
         );
 
         if (!researcherResponse.ok) {
           const errorData = await researcherResponse.json();
           throw new Error(
-            errorData.error || "Failed to submit researcher data"
+            errorData.error || "Failed to submit researcher data",
           );
         }
 
@@ -260,7 +260,7 @@
             headers: {
               "Content-Type": "application/json",
             },
-          }
+          },
         );
 
         if (!latestResponse.ok) {
@@ -309,7 +309,7 @@
           headers: {
             "Content-Type": "application/json",
           },
-        }
+        },
       );
 
       if (!latestPetitionResponse.ok) {
@@ -329,7 +329,7 @@
           {
             method: "POST",
             body: formData,
-          }
+          },
         );
 
         if (!response.ok) {
@@ -393,7 +393,7 @@
 
       // Reset date input
       const dateInput = document.querySelector(
-        'input[type="date"]'
+        'input[type="date"]',
       ) as HTMLInputElement;
       if (dateInput) {
         dateInput.value = currentDate;
@@ -403,6 +403,139 @@
       alert("กรุณาตรวจสอบชื่อไฟล์เอกสาร: " + error.message);
     }
   }
+
+  const generatePDF = () => {
+    const doc = new jsPDF();
+
+    // Load Thai font (Sarabun)
+    doc.addFileToVFS("Sarabun-Regular.ttf", font);
+    doc.addFont("Sarabun-Regular.ttf", "Sarabun", "normal");
+    doc.setFont("Sarabun", "normal");
+
+    // Add logo
+    const logo =
+      "https://th.bing.com/th/id/OIP.CFJHa2V7Aq9YTw8qF2GLzwHaIn?rs=1&pid=ImgDetMain";
+    doc.addImage(logo, "JPEG", 10, 10, 20, 20);
+
+    // Title Section
+    doc.setFontSize(16);
+    doc.text("บันทึกข้อความ", 105, 20, { align: "center" });
+    doc.text("มหาวิทยาลัยราชภัฏบุรีรัมย์", 105, 30, { align: "center" });
+
+    doc.setFontSize(12);
+    doc.text("BRU-H1", 200, 20, { align: "right" });
+
+    // Document Information
+    doc.setFontSize(10);
+    doc.text(`เลขเอกสาร ${formData.correspondenceNo}`, 10, 50);
+    doc.text(`วันที่ ${currentDate}`, 150, 50);
+
+    // Subject and Addressee
+    doc.setLineHeightFactor(1.5);
+    doc.text(
+      `เรื่อง ขออนุมัติทำการวิจัยในมนุษย์และขอรับการรับรองจากคณะกรรมการจริยธรรมการวิจัยในมนุษย์`,
+      10,
+      60,
+    );
+    doc.text(`เรียน ผู้อำนวยการสถาบันวิจัยและพัฒนา`, 10, 70);
+
+    // Researcher Information
+    const selectedPrename = prenames.find(
+      (prename) => prename.id === Number(researcherData.prenameId),
+    );
+    doc.text(
+      `ด้วยข้าพเจ้า ${selectedPrename ? selectedPrename.description : ""} ${researcherData.name} ${researcherData.surname}`,
+      10,
+      80,
+    );
+    doc.text(`สำนักวิชา ${departmentSearchTerm}`, 10, 90);
+    doc.text(`คณะ ${selectedFaculty}`, 10, 100);
+    doc.text(`โทรศัพท์ ${researcherData.telNo}`, 10, 110);
+    doc.text(`อีเมล ${researcherData.email}`, 10, 120);
+
+    // Research Details
+    doc.text(
+      `มีความประสงค์จะทำวิจัยเรื่อง (ภาษาไทย) ${formData.title_th}`,
+      10,
+      130,
+    );
+    doc.text(`(ภาษาอังกฤษ) ${formData.title_en}`, 10, 140);
+
+    doc.text("เพื่อ", 10, 150);
+
+    doc.circle(15, 160, 1.5); // วาดวงกลมสำหรับ checkbox
+    if (selectedObjective === 1) {
+      doc.circle(15, 160, 1, "F"); // เติมจุดถ้าถูกเลือก
+    }
+    doc.text("การทำวิจัย", 20, 161);
+
+    doc.circle(15, 170, 1.5); // วาดวงกลมสำหรับ checkbox
+    if (selectedObjective === 2) {
+      doc.circle(15, 170, 1, "F"); // เติมจุดถ้าถูกเลือก
+    }
+    doc.text("การขอขึ้นทะเบียนยาในประเทศ", 20, 171);
+
+    doc.circle(15, 180, 1.5); // วาดวงกลมสำหรับ checkbox
+    if (selectedObjective === 3) {
+      doc.circle(15, 180, 1, "F"); // เติมจุดถ้าถูกเลือก
+    }
+    doc.text("อื่นๆ", 20, 181);
+    doc.text(formData.objectiveOther, 20, 190);
+
+    // Grant Section
+    doc.text("ได้รับทุนสนับสนุนการทำวิจัยจาก", 10, 200);
+
+    doc.circle(15, 210, 1.5); // วาดวงกลมสำหรับ checkbox
+    if (selectedGrant === 1) {
+      doc.circle(15, 210, 1, "F"); // เติมจุดถ้าถูกเลือก
+    }
+    doc.text("มรภ.บร.", 20, 211);
+
+    doc.circle(15, 220, 1.5); // วาดวงกลมสำหรับ checkbox
+    if (selectedGrant === 2) {
+      doc.circle(15, 220, 1, "F"); // เติมจุดถ้าถูกเลือก
+    }
+    doc.text("ส่วนตัว", 20, 221);
+
+    doc.circle(15, 230, 1.5); // วาดวงกลมสำหรับ checkbox
+    if (selectedGrant === 3) {
+      doc.circle(15, 230, 1, "F"); // เติมจุดถ้าถูกเลือก
+    }
+    doc.text("แหล่งทุนภายนอก (โปรดระบุ)", 20, 231);
+    doc.text(formData.grantOther, 20, 240);
+
+    doc.text("ประเภทโครงการวิจัย", 10, 250);
+
+    doc.circle(15, 260, 1.5); // วาดวงกลมสำหรับ checkbox
+    if (selectedType === 1) {
+      doc.circle(15, 260, 1, "F"); // เติมจุดถ้าถูกเลือก
+    }
+    doc.text("ทั่วไป (เกี่ยวข้องกับมนุษย์โดยตรง)", 20, 261);
+
+    doc.circle(15, 270, 1.5); // วาดวงกลมสำหรับ checkbox
+    if (selectedType === 2) {
+      doc.circle(15, 270, 1, "F"); // เติมจุดถ้าถูกเลือก
+    }
+    doc.text("ความเสี่ยงต่ำ (เช่น ศึกษาข้อมูลย้อนหลังจากเวชระเบียน บทความ บทสัมภาษณ์\n แบบสอบถาม ศึกษาสิ่งส่งตรวจต่างๆ จำกร่างกาย เป็นต้น)", 20, 271);
+    
+    doc.addPage(); // เพิ่มหน้าใหม่
+    doc.text("โดยได้แนบเอกสารประกอบการพิจารณา จำนวน 2 ชุด ดังนี้", 30, 20);
+    let yPosition = 40; // Starting position for the document table
+    doc.setFontSize(10);
+    doc.text("รายการเอกสาร", 10, yPosition);
+    doc.text("อัพโหลดไฟล์", 150, yPosition);
+    yPosition += 10;
+
+    documentTypes.forEach((docType) => {
+      doc.text(`${docType.id}. ${docType.description}`, 10, yPosition);
+      const fileStatus = uploadedFiles[docType.id] ? uploadedFiles[docType.id].name : "No file chosen";
+      doc.text(fileStatus, 150, yPosition);
+      yPosition += 10;
+    });
+
+    // Save the PDF
+    doc.save("generated.pdf");
+  };
 
   fetchDocumentTypes();
 </script>
@@ -713,6 +846,7 @@
     </div>
     <div class="form-actions">
       <button type="submit">ส่งเอกสารขออนุมัติทำการวิจัย</button>
+      <button type="button" on:click={generatePDF}>Generate PDF</button>
     </div>
   </form>
 </div>

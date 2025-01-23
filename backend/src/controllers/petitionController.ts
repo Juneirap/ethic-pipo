@@ -395,3 +395,46 @@ export const openFile = async (c: any) => {
     return c.json({ message: 'Error opening file' }, 500);
   }
 };
+
+export const getAllPetitionsSubcommittee = async (c: any) => {
+  try {
+    const allPetitions = await db
+      .select(
+        {
+          id: petition.id,
+          correspondenceNo: petition.correspondenceNo,
+          title_th: petition.title_th,
+          title_en: petition.title_en,
+          objective: petitionObjectiveType.description,
+          grant: petitionGrant.description,
+          typeId: petitionType.id, // Add typeId
+          typeDescription: petitionType.description, // Add type description
+          statusId: petitionStatus.id, // Add statusId
+          statusDescription: petitionStatus.description, // Add status description
+          researcher: sql`CONCAT(${researcher.name}, ' ', ${researcher.surname})`,
+          currentLevel: petitionLevel.description,
+          currentLevelId: petition.currentLevelId,
+          staff: sql`CONCAT(${staff.name}, ' ', ${staff.surname})`,
+          note: petition.note,
+          created_at: sql`DATE_FORMAT(${petition.createdAt}, '%H:%i : %d-%m-%Y')`,
+        }
+      )
+      .from(petition)
+      .leftJoin(petitionLevel, sql`${petition.currentLevelId} = ${petitionLevel.id}`)
+      .leftJoin(petitionObjectiveType, sql`${petition.objectiveId} = ${petitionObjectiveType.id}`)
+      .leftJoin(petitionResearchType, sql`${petition.researchTypeId} = ${petitionResearchType.id}`)
+      .leftJoin(petitionStatus, sql`${petition.statusId} = ${petitionStatus.id}`)
+      .leftJoin(petitionType, sql`${petition.typeId} = ${petitionType.id}`)
+      .leftJoin(petitionGrant, sql`${petition.grantId} = ${petitionGrant.id}`)
+      .leftJoin(staff, sql`${petition.staffId} = ${staff.id}`)
+      .leftJoin(researcher, sql`${petition.researcherId} = ${researcher.id}`);
+
+    return c.json(allPetitions, 200);
+  } catch (error) {
+    console.error(error);
+    return c.json(
+      { error: "Failed to retrieve petitions.", details: (error as any).message },
+      500
+    );
+  }
+};

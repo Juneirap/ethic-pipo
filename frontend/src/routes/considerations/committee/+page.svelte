@@ -1,24 +1,40 @@
 <script lang="ts">
-  import { onMount } from "svelte";
-  import { goto } from "$app/navigation";
+  import { onMount } from 'svelte';
+  import { goto } from '$app/navigation';
+  import { page } from '$app/stores';
 
-  let petitions = [];
+  let petitions: string | any[] = [];
+  let authToken: any;
+  let errorMessage;
+
+  // ดึงค่า authToken จาก store ของ SvelteKit
+  $: authToken = $page.data.authToken;
 
   // ฟังก์ชันดึงข้อมูล petitions ทั้งหมดและแสดงข้อมูลที่มี currentLevelId = 1
   async function fetchPetitions() {
+    if (!authToken) {
+      petitions = [];
+      errorMessage = 'คุณไม่ได้รับอนุญาต';
+      return;
+    }
     try {
-      const response = await fetch("http://localhost:8000/petitions/all");
+      const response = await fetch('http://localhost:8000/petitions/subcommittee', {
+        headers: {
+          Authorization: `Bearer ${authToken}`
+        }
+      });
+
       if (response.ok) {
         const allPetitions = await response.json();
         // กรองเฉพาะ petitions ที่มี currentLevelId เป็น 1
-        petitions = allPetitions.filter((petition) => {
+        petitions = allPetitions.filter(petition => {
           return petition.currentLevelId === 2;
         });
       } else {
-        console.error("Failed to fetch petitions");
+        errorMessage = 'Failed to fetch petitions';
       }
     } catch (error) {
-      console.error("Error fetching petitions:", error);
+      errorMessage = 'Error fetching petitions: ' + error.message;
     }
   }
 
@@ -34,6 +50,9 @@
 </script>
 
 <div class="container mx-auto px-4 py-8">
+  {#if !authToken}
+    <div class="text-red-500 text-center mt-4">คุณไม่ได้รับอนุญาต</div>
+  {:else}
   <h1 class="text-2xl font-bold mb-4">
     รายการคำร้องขอจริยธรรมการวิจัยในมนุษย์ (ขั้นกรรมการ)
   </h1>
@@ -48,7 +67,7 @@
           <th class="py-3 px-6 text-left">ขั้นตอนปัจจุบัน</th>
           <th class="py-3 px-6 text-left">สถานะเอกสาร</th>
           <th class="py-3 px-6 text-left">วันที่สร้าง</th>
-          <th class="py-3 px-6 text-center">ขอมูลคำร้อง</th>
+          <th class="py-3 px-6 text-center">ข้อมูลคำร้อง</th>
         </tr>
       </thead>
       <tbody class="text-gray-600 text-sm font-light">
@@ -75,7 +94,7 @@
               </td>
               <td class="py-3 px-6 text-left">
                 {#if petition.statusId === 1}
-                  <div class="badge badge-info badge-outline">{petition.statusDescription}</div> <!-- Changed to blue -->
+                  <div class="badge badge-info badge-outline">{petition.statusDescription}</div>
                 {:else if petition.statusId === 2}
                   <div class="badge badge-success badge-outline">{petition.statusDescription}</div>
                 {:else if petition.statusId === 3}
@@ -83,7 +102,7 @@
                 {:else if petition.statusId === 4}
                   <div class="badge badge-warning badge-outline">{petition.statusDescription}</div>
                 {:else}
-                  <div class="badge badge-danger badge-outline">{petition.statusDescription}</div> <!-- Default case if needed -->
+                  <div class="badge badge-danger badge-outline">{petition.statusDescription}</div>
                 {/if}
               </td>
               <td class="py-3 px-6 text-left">
@@ -101,6 +120,7 @@
       </tbody>
     </table>
   </div>
+  {/if}
 </div>
 
 <style>
