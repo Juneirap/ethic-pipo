@@ -34,6 +34,8 @@
     errorMessage = null; // Reset any previous error message
     isLoading = false; // Reset loading state
     const modal = document.getElementById("my_modal_1") as HTMLDialogElement;
+    const input = document.getElementById("phone-input") as HTMLInputElement;
+    input.value = ""; // Reset the input field to empty
     modal?.showModal(); // Open the modal
   }
 
@@ -61,9 +63,20 @@
     }
   }
 
+  function handleInputChange() {
+    errorMessage = null; // Clear error message when input changes
+  }
+
+  function closeModal() {
+    errorMessage = null; // Reset error message
+    const modal = document.getElementById("my_modal_1") as HTMLDialogElement;
+    modal?.close(); // Close the modal
+  }
+
   onMount(() => {
     fetchPetitions();
   });
+
 </script>
 
 <div class="container mx-auto px-4 py-8">
@@ -133,7 +146,9 @@
 
   <!-- Table for statusId: 2 and 3 -->
   <div class="table-container">
-    <h2 class="text-xl font-bold mt-8 mb-4">ข้อมูลคำร้อง (ดำเนินการเสร็จสิ้น)</h2>
+    <h2 class="text-xl font-bold mt-8 mb-4">
+      ข้อมูลคำร้อง (ดำเนินการเสร็จสิ้น)
+    </h2>
     <table class="min-w-full bg-white">
       <thead>
         <tr class="bg-gray-200 text-gray-600 uppercase text-sm leading-normal">
@@ -197,12 +212,12 @@
   <div class="modal-box">
     <h3 class="text-lg font-bold">กรุณากรอกเบอร์โทรศัพท์ของคุณ</h3>
     <div class="mt-4 relative">
-      <!-- Add margin-top to create space and set position relative -->
       <input
         type="text"
         id="phone-input"
         placeholder="เบอร์โทรศัพท์"
         class="input"
+        on:input={handleInputChange}
       />
       {#if isLoading}
         <span
@@ -212,14 +227,13 @@
     </div>
     {#if errorMessage}
       <p class="text-red-500">{errorMessage}</p>
-      <!-- Display error message in modal -->
     {/if}
     <div class="modal-action">
       <button
         class="btn btn-outline btn-info"
         on:click={verifyAndGoToDirectorPage}>ยืนยัน</button
       >
-      <form method="dialog">
+      <form method="dialog" on:submit={closeModal}>
         <button class="btn btn-outline btn-error">ยกเลิก</button>
       </form>
     </div>
