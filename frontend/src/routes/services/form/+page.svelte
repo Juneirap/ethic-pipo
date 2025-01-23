@@ -590,7 +590,7 @@
     doc.line(180, 28, 180, yPosition); // Vertical line for the right side
 
     // Save the PDF
-    doc.save("generated.pdf");
+    doc.save("เอกสารขออนุมัติทำการวิจัยในมนุษย์และขอรับการรับรองจากคณะกรรมการจริยธรรมการวิจัยในมนุษย์.pdf");
   };
 
   fetchDocumentTypes();
