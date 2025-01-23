@@ -5,6 +5,7 @@
 
   // สร้างตัวแปรสำหรับวันที่ปัจจุบัน
   let currentDate = new Date().toISOString().split("T")[0];
+  let currentLevelId = 0;  
 
   let petitions = {
     id: null,
@@ -567,7 +568,7 @@
     </div>
 
     <div class="document-table">
-      <h3>เอกสารประกอบการพิจารณา</h3>
+      <h3>เอกสารประกอบการพิจารณา (ขั้นอนุกรรมการ)</h3>
       <table>
         <thead>
           <tr>
@@ -590,7 +591,9 @@
                         class="file-name cursor-pointer"
                         on:click={() => openFile(file.name)}
                       >
-                        {file.name}
+                        {file.name.length > 31
+                          ? file.name.substring(0, 35) + "..."
+                          : file.name}
                       </span>
                     </div>
                     <div class="file-actions">
@@ -649,7 +652,9 @@
                         class="file-name cursor-pointer"
                         on:click={() => openFile(file.name)}
                       >
-                        {file.name}
+                        {file.name.length > 31
+                          ? file.name.substring(0, 35) + "..."
+                          : file.name}
                       </span>
                     </div>
                     <div class="file-actions">
@@ -708,7 +713,9 @@
                         class="file-name cursor-pointer"
                         on:click={() => openFile(file.name)}
                       >
-                        {file.name}
+                        {file.name.length > 31
+                          ? file.name.substring(0, 35) + "..."
+                          : file.name}
                       </span>
                     </div>
                     <div class="file-actions">
@@ -767,7 +774,9 @@
                         class="file-name cursor-pointer"
                         on:click={() => openFile(file.name)}
                       >
-                        {file.name}
+                        {file.name.length > 31
+                          ? file.name.substring(0, 35) + "..."
+                          : file.name}
                       </span>
                     </div>
                     <div class="file-actions">
@@ -826,7 +835,9 @@
                         class="file-name cursor-pointer"
                         on:click={() => openFile(file.name)}
                       >
-                        {file.name}
+                        {file.name.length > 31
+                          ? file.name.substring(0, 35) + "..."
+                          : file.name}
                       </span>
                     </div>
                     <div class="file-actions">
@@ -875,6 +886,375 @@
       </table>
     </div>
 
+    <div class="document-table"style="margin-top: 20px;">
+      <h3>เอกสารประกอบการพิจารณา (ขั้นอนุกรรมการ)</h3>
+      <table>
+        <thead>
+          <tr>
+            <th class="border border-gray-300 text-center">รายการ</th>
+            <th class="border border-gray-300 text-center">เอกสาร</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td class="border px-4 py-2">
+              1. ประวัติส่วนตัว/ผลงานของผู้วิจัย
+            </td>
+            <td class="border px-4 py-2">
+              {#if petitionFiles.filter((f) => f.documentTypeId === 3).length > 0}
+                {#each petitionFiles.filter((f) => f.documentTypeId === 3) as file}
+                  <div class="file-container">
+                    <div class="file-info">
+                      <i class="fas fa-file-alt file-icon"></i>
+                      <span
+                        class="file-name cursor-pointer"
+                        on:click={() => openFile(file.name)}
+                      >
+                        {file.name.length > 31
+                          ? file.name.substring(0, 35) + "..."
+                          : file.name}
+                      </span>
+                    </div>
+                    <div class="file-actions">
+                      <input
+                        type="file"
+                        style="display: none"
+                        on:change={(e: Event) => {
+                          const target = e.target as HTMLInputElement;
+                          if (target && target.files && target.files[0]) {
+                            handleFileEdit(file, target.files[0]);
+                          }
+                        }}
+                        id="edit-file-{file.id}"
+                      />
+                      {#if petitions.statusId !== 3 && petitions.statusId !== 1 && petitions.statusId !== 2}
+                        <button
+                          class="action-button edit-button"
+                          on:click={() => {
+                            const element = document.getElementById(`edit-file-${file.id}`);
+                            if (element) element.click();
+                          }}
+                        >
+                          <i class="fas fa-edit"></i>
+                          แก้ไข
+                        </button>
+                      {/if}
+                    </div>
+                  </div>
+                {/each}
+              {:else}
+                <div class="no-file">ไม่มีข้อมูลเอกสาร</div>
+              {/if}
+              <div class="upload-section">
+                <input
+                  type="file"
+                  style="display: none"
+                  on:change={(e) => handleFileUpload(e, 3)}
+                  id="upload-file-3"
+                />
+              </div>
+            </td>
+          </tr>
+          <tr>
+            <td class="border px-4 py-2">
+              2. แบบประเมินโครงการวิจัยด้วยตนเอง (Self-Assessment Form)
+            </td>
+            <td class="border px-4 py-2">
+              {#if petitionFiles.filter((f) => f.documentTypeId === 5).length > 0}
+                {#each petitionFiles.filter((f) => f.documentTypeId === 5) as file}
+                  <div class="file-container">
+                    <div class="file-info">
+                      <i class="fas fa-file-alt file-icon"></i>
+                      <span
+                        class="file-name cursor-pointer"
+                        on:click={() => openFile(file.name)}
+                      >
+                        {file.name.length > 31
+                          ? file.name.substring(0, 35) + "..."
+                          : file.name}
+                      </span>
+                    </div>
+                    <div class="file-actions">
+                      <input
+                        type="file"
+                        style="display: none"
+                        on:change={(e: Event) => {
+                          const target = e.target as HTMLInputElement;
+                          if (target && target.files && target.files[0]) {
+                            handleFileEdit(file, target.files[0]);
+                          }
+                        }}
+                        id="edit-file-{file.id}"
+                      />
+                      {#if petitions.statusId !== 3 && petitions.statusId !== 1 && petitions.statusId !== 2}
+                        <button
+                          class="action-button edit-button"
+                          on:click={() => {
+                            const element = document.getElementById(`edit-file-${file.id}`);
+                            if (element) element.click();
+                          }}
+                        >
+                          <i class="fas fa-edit"></i>
+                          แก้ไข
+                        </button>
+                      {/if}
+                    </div>
+                  </div>
+                {/each}
+              {:else}
+                <div class="no-file">ไม่มีข้อมูลเอกสาร</div>
+              {/if}
+              <div class="upload-section">
+                <input
+                  type="file"
+                  style="display: none"
+                  on:change={(e) => handleFileUpload(e, 5)}
+                  id="upload-file-5"
+                />
+              </div>
+            </td>
+          </tr>
+          <tr>
+            <td class="border px-4 py-2">
+              3. การขัดแย้งทางผลประโยชน์ (Conflict of interest)
+            </td>
+            <td class="border px-4 py-2">
+              {#if petitionFiles.filter((f) => f.documentTypeId === 6).length > 0}
+                {#each petitionFiles.filter((f) => f.documentTypeId === 6) as file}
+                  <div class="file-container">
+                    <div class="file-info">
+                      <i class="fas fa-file-alt file-icon"></i>
+                      <span
+                        class="file-name cursor-pointer"
+                        on:click={() => openFile(file.name)}
+                      >
+                        {file.name.length > 31
+                          ? file.name.substring(0, 35) + "..."
+                          : file.name}
+                      </span>
+                    </div>
+                    <div class="file-actions">
+                      <input
+                        type="file"
+                        style="display: none"
+                        on:change={(e: Event) => {
+                          const target = e.target as HTMLInputElement;
+                          if (target && target.files && target.files[0]) {
+                            handleFileEdit(file, target.files[0]);
+                          }
+                        }}
+                        id="edit-file-{file.id}"
+                      />
+                      {#if petitions.statusId !== 3 && petitions.statusId !== 1 && petitions.statusId !== 2}
+                        <button
+                          class="action-button edit-button"
+                          on:click={() => {
+                            const element = document.getElementById(`edit-file-${file.id}`);
+                            if (element) element.click();
+                          }}
+                        >
+                          <i class="fas fa-edit"></i>
+                          แก้ไข
+                        </button>
+                      {/if}
+                    </div>
+                  </div>
+                {/each}
+              {:else}
+                <div class="no-file">ไม่มีข้อมูลเอกสาร</div>
+              {/if}
+              <div class="upload-section">
+                <input
+                  type="file"
+                  style="display: none"
+                  on:change={(e) => handleFileUpload(e, 6)}
+                  id="upload-file-6"
+                />
+              </div>
+            </td>
+          </tr>
+          <tr>
+            <td class="border px-4 py-2">
+              4. เอกสารชี้แจงผู้เข้าร่วมการวิจัย (Participant information sheet)
+            </td>
+            <td class="border px-4 py-2">
+              {#if petitionFiles.filter((f) => f.documentTypeId === 7).length > 0}
+                {#each petitionFiles.filter((f) => f.documentTypeId === 7) as file}
+                  <div class="file-container">
+                    <div class="file-info">
+                      <i class="fas fa-file-alt file-icon"></i>
+                      <span
+                        class="file-name cursor-pointer"
+                        on:click={() => openFile(file.name)}
+                      >
+                        {file.name.length > 31
+                          ? file.name.substring(0, 35) + "..."
+                          : file.name}
+                      </span>
+                    </div>
+                    <div class="file-actions">
+                      <input
+                        type="file"
+                        style="display: none"
+                        on:change={(e: Event) => {
+                          const target = e.target as HTMLInputElement;
+                          if (target && target.files && target.files[0]) {
+                            handleFileEdit(file, target.files[0]);
+                          }
+                        }}
+                        id="edit-file-{file.id}"
+                      />
+                      {#if petitions.statusId !== 3 && petitions.statusId !== 1 && petitions.statusId !== 2}
+                        <button
+                          class="action-button edit-button"
+                          on:click={() => {
+                            const element = document.getElementById(`edit-file-${file.id}`);
+                            if (element) element.click();
+                          }}
+                        >
+                          <i class="fas fa-edit"></i>
+                          แก้ไข
+                        </button>
+                      {/if}
+                    </div>
+                  </div>
+                {/each}
+              {:else}
+                <div class="no-file">ไม่มีข้อมูลเอกสาร</div>
+              {/if}
+              <div class="upload-section">
+                <input
+                  type="file"
+                  style="display: none"
+                  on:change={(e) => handleFileUpload(e, 7)}
+                  id="upload-file-7"
+                />
+              </div>
+            </td>
+          </tr>
+          <tr>
+            <td class="border px-4 py-2">
+              5. หนังสือแสดงเจตนายินยอมเข้าร่วมการวิจัย (Informed consent form)
+            </td>
+            <td class="border px-4 py-2">
+              {#if petitionFiles.filter((f) => f.documentTypeId === 8).length > 0}
+                {#each petitionFiles.filter((f) => f.documentTypeId === 8) as file}
+                  <div class="file-container">
+                    <div class="file-info">
+                      <i class="fas fa-file-alt file-icon"></i>
+                      <span
+                        class="file-name cursor-pointer"
+                        on:click={() => openFile(file.name)}
+                      >
+                        {file.name.length > 31
+                          ? file.name.substring(0, 35) + "..."
+                          : file.name}
+                      </span>
+                    </div>
+                    <div class="file-actions">
+                      <input
+                        type="file"
+                        style="display: none"
+                        on:change={(e: Event) => {
+                          const target = e.target as HTMLInputElement;
+                          if (target && target.files && target.files[0]) {
+                            handleFileEdit(file, target.files[0]);
+                          }
+                        }}
+                        id="edit-file-{file.id}"
+                      />
+                      {#if petitions.statusId !== 3 && petitions.statusId !== 1 && petitions.statusId !== 2}
+                        <button
+                          class="action-button edit-button"
+                          on:click={() => {
+                            const element = document.getElementById(`edit-file-${file.id}`);
+                            if (element) element.click();
+                          }}
+                        >
+                          <i class="fas fa-edit"></i>
+                          แก้ไข
+                        </button>
+                      {/if}
+                    </div>
+                  </div>
+                {/each}
+              {:else}
+                <div class="no-file">ไม่มีข้อมูลเอกสาร</div>
+              {/if}
+              <div class="upload-section">
+                <input
+                  type="file"
+                  style="display: none"
+                  on:change={(e) => handleFileUpload(e, 8)}
+                  id="upload-file-8"
+                />
+              </div>
+            </td>
+          </tr>
+          <tr>
+            <td class="border px-4 py-2">
+              6. Investigator’s brochure / ทะเบียนและเอกสารกำกับยาหรือเครื่องมือ (ถ้ามี)
+            </td>
+            <td class="border px-4 py-2">
+              {#if petitionFiles.filter((f) => f.documentTypeId === 11).length > 0}
+                {#each petitionFiles.filter((f) => f.documentTypeId === 11) as file}
+                  <div class="file-container">
+                    <div class="file-info">
+                      <i class="fas fa-file-alt file-icon"></i>
+                      <span
+                        class="file-name cursor-pointer"
+                        on:click={() => openFile(file.name)}
+                      >
+                        {file.name.length > 31
+                          ? file.name.substring(0, 35) + "..."
+                          : file.name}
+                      </span>
+                    </div>
+                    <div class="file-actions">
+                      <input
+                        type="file"
+                        style="display: none"
+                        on:change={(e: Event) => {
+                          const target = e.target as HTMLInputElement;
+                          if (target && target.files && target.files[0]) {
+                            handleFileEdit(file, target.files[0]);
+                          }
+                        }}
+                        id="edit-file-{file.id}"
+                      />
+                      {#if petitions.statusId !== 3 && petitions.statusId !== 1 && petitions.statusId !== 2}
+                        <button
+                          class="action-button edit-button"
+                          on:click={() => {
+                            const element = document.getElementById(`edit-file-${file.id}`);
+                            if (element) element.click();
+                          }}
+                        >
+                          <i class="fas fa-edit"></i>
+                          แก้ไข
+                        </button>
+                      {/if}
+                    </div>
+                  </div>
+                {/each}
+              {:else}
+                <div class="no-file">ไม่มีข้อมูลเอกสาร</div>
+              {/if}
+              <div class="upload-section">
+                <input
+                  type="file"
+                  style="display: none"
+                  on:change={(e) => handleFileUpload(e, 11)}
+                  id="upload-file-11"
+                />
+              </div>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    
+
     <div class="evaluation-section">
       <h3>ข้อเสนอแนะ</h3>
       <div class="evaluation-fields">
@@ -893,6 +1273,7 @@
     </div>
   </form>
 </div>
+
 
 <style>
   .form-container {

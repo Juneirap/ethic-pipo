@@ -87,7 +87,7 @@
                 {petition.correspondenceNo}
               </td>
               <td class="py-3 px-6 text-left">
-                {petition.title_th}
+                {petition.title_th.length > 11 ? petition.title_th.substring(0, 11) + '...' : petition.title_th}
               </td>
               <td class="py-3 px-6 text-left">
                 {petition.currentLevel}

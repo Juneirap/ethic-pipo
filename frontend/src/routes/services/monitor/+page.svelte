@@ -76,7 +76,6 @@
   onMount(() => {
     fetchPetitions();
   });
-
 </script>
 
 <div class="container mx-auto px-4 py-8">
@@ -113,7 +112,11 @@
                 >{petition.researcher}</td
               >
               <td class="py-3 px-6 text-left">{petition.correspondenceNo}</td>
-              <td class="py-3 px-6 text-left">{petition.title_th}</td>
+              <td class="py-3 px-6 text-left">
+                {petition.title_th.length > 11
+                  ? petition.title_th.substring(0, 11) + "..."
+                  : petition.title_th}
+              </td>
               <td class="py-3 px-6 text-left">{petition.currentLevel}</td>
               <td class="py-3 px-6 text-left">
                 {#if petition.statusId === 1}
@@ -175,7 +178,11 @@
                 >{petition.researcher}</td
               >
               <td class="py-3 px-6 text-left">{petition.correspondenceNo}</td>
-              <td class="py-3 px-6 text-left">{petition.title_th}</td>
+              <td class="py-3 px-6 text-left">
+                {petition.title_th.length > 11
+                  ? petition.title_th.substring(0, 11) + "..."
+                  : petition.title_th}
+              </td>
               <td class="py-3 px-6 text-left">{petition.currentLevel}</td>
               <td class="py-3 px-6 text-left">
                 {#if petition.statusId === 2}

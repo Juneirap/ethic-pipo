@@ -653,11 +653,13 @@
                     <div class="file-info">
                       <i class="fas fa-file-alt file-icon"></i>
                       <span
-                        class="file-name cursor-pointer"
-                        on:click={() => openFile(file.name)}
-                      >
-                        {file.name}
-                      </span>
+                          class="file-name cursor-pointer"
+                          on:click={() => openFile(file.name)}
+                        >
+                          {file.name.length > 31
+                            ? file.name.substring(0, 35) + "..."
+                            : file.name}
+                        </span>
                     </div>
                     <div class="file-actions">
                       <input
@@ -698,11 +700,13 @@
                     <div class="file-info">
                       <i class="fas fa-file-alt file-icon"></i>
                       <span
-                        class="file-name cursor-pointer"
-                        on:click={() => openFile(file.name)}
-                      >
-                        {file.name}
-                      </span>
+                          class="file-name cursor-pointer"
+                          on:click={() => openFile(file.name)}
+                        >
+                          {file.name.length > 31
+                            ? file.name.substring(0, 35) + "..."
+                            : file.name}
+                        </span>
                     </div>
                     <div class="file-actions">
                       <input
@@ -743,11 +747,13 @@
                     <div class="file-info">
                       <i class="fas fa-file-alt file-icon"></i>
                       <span
-                        class="file-name cursor-pointer"
-                        on:click={() => openFile(file.name)}
-                      >
-                        {file.name}
-                      </span>
+                          class="file-name cursor-pointer"
+                          on:click={() => openFile(file.name)}
+                        >
+                          {file.name.length > 31
+                            ? file.name.substring(0, 35) + "..."
+                            : file.name}
+                        </span>
                     </div>
                     <div class="file-actions">
                       <input
@@ -788,11 +794,13 @@
                     <div class="file-info">
                       <i class="fas fa-file-alt file-icon"></i>
                       <span
-                        class="file-name cursor-pointer"
-                        on:click={() => openFile(file.name)}
-                      >
-                        {file.name}
-                      </span>
+                          class="file-name cursor-pointer"
+                          on:click={() => openFile(file.name)}
+                        >
+                          {file.name.length > 31
+                            ? file.name.substring(0, 35) + "..."
+                            : file.name}
+                        </span>
                     </div>
                     <div class="file-actions">
                       <input
@@ -833,11 +841,13 @@
                     <div class="file-info">
                       <i class="fas fa-file-alt file-icon"></i>
                       <span
-                        class="file-name cursor-pointer"
-                        on:click={() => openFile(file.name)}
-                      >
-                        {file.name}
-                      </span>
+                          class="file-name cursor-pointer"
+                          on:click={() => openFile(file.name)}
+                        >
+                          {file.name.length > 31
+                            ? file.name.substring(0, 35) + "..."
+                            : file.name}
+                        </span>
                     </div>
                     <div class="file-actions">
                       <input
@@ -878,11 +888,13 @@
                     <div class="file-info">
                       <i class="fas fa-file-alt file-icon"></i>
                       <span
-                        class="file-name cursor-pointer"
-                        on:click={() => openFile(file.name)}
-                      >
-                        {file.name}
-                      </span>
+                          class="file-name cursor-pointer"
+                          on:click={() => openFile(file.name)}
+                        >
+                          {file.name.length > 31
+                            ? file.name.substring(0, 35) + "..."
+                            : file.name}
+                        </span>
                     </div>
                     <div class="file-actions">
                       <input
@@ -923,11 +935,13 @@
                     <div class="file-info">
                       <i class="fas fa-file-alt file-icon"></i>
                       <span
-                        class="file-name cursor-pointer"
-                        on:click={() => openFile(file.name)}
-                      >
-                        {file.name}
-                      </span>
+                          class="file-name cursor-pointer"
+                          on:click={() => openFile(file.name)}
+                        >
+                          {file.name.length > 31
+                            ? file.name.substring(0, 35) + "..."
+                            : file.name}
+                        </span>
                     </div>
                     <div class="file-actions">
                       <input
@@ -968,11 +982,13 @@
                     <div class="file-info">
                       <i class="fas fa-file-alt file-icon"></i>
                       <span
-                        class="file-name cursor-pointer"
-                        on:click={() => openFile(file.name)}
-                      >
-                        {file.name}
-                      </span>
+                          class="file-name cursor-pointer"
+                          on:click={() => openFile(file.name)}
+                        >
+                          {file.name.length > 31
+                            ? file.name.substring(0, 35) + "..."
+                            : file.name}
+                        </span>
                     </div>
                     <div class="file-actions">
                       <input
@@ -1013,11 +1029,13 @@
                     <div class="file-info">
                       <i class="fas fa-file-alt file-icon"></i>
                       <span
-                        class="file-name cursor-pointer"
-                        on:click={() => openFile(file.name)}
-                      >
-                        {file.name}
-                      </span>
+                          class="file-name cursor-pointer"
+                          on:click={() => openFile(file.name)}
+                        >
+                          {file.name.length > 31
+                            ? file.name.substring(0, 35) + "..."
+                            : file.name}
+                        </span>
                     </div>
                     <div class="file-actions">
                       <input
@@ -1058,11 +1076,13 @@
                     <div class="file-info">
                       <i class="fas fa-file-alt file-icon"></i>
                       <span
-                        class="file-name cursor-pointer"
-                        on:click={() => openFile(file.name)}
-                      >
-                        {file.name}
-                      </span>
+                          class="file-name cursor-pointer"
+                          on:click={() => openFile(file.name)}
+                        >
+                          {file.name.length > 31
+                            ? file.name.substring(0, 35) + "..."
+                            : file.name}
+                        </span>
                     </div>
                     <div class="file-actions">
                       <input
@@ -1103,11 +1123,13 @@
                     <div class="file-info">
                       <i class="fas fa-file-alt file-icon"></i>
                       <span
-                        class="file-name cursor-pointer"
-                        on:click={() => openFile(file.name)}
-                      >
-                        {file.name}
-                      </span>
+                          class="file-name cursor-pointer"
+                          on:click={() => openFile(file.name)}
+                        >
+                          {file.name.length > 31
+                            ? file.name.substring(0, 35) + "..."
+                            : file.name}
+                        </span>
                     </div>
                     <div class="file-actions">
                       <input
