@@ -6,6 +6,7 @@
 
   // สร้างตัวแปรสำหรับวันที่ปัจจุบัน
   let currentDate = new Date().toISOString().split("T")[0];
+  
 
   // Prename data
   let prenames: Array<{
@@ -405,8 +406,35 @@
   }
 
   const generatePDF = () => {
-    const doc = new jsPDF();
+    // Validation checks
+  if (!researcherData.prenameId || !researcherData.name || !researcherData.surname) {
+    showError("กรุณากรอกข้อมูลคำนำหน้า, ชื่อ และนามสกุล");
+    return;
+  }
 
+  if (!formData.title_th || !formData.title_en) {
+    showError("กรุณากรอกชื่อเรื่องภาษาไทยและภาษาอังกฤษ");
+    return;
+  }
+
+  if (!selectedObjective) {
+    showError("กรุณาเลือกวัตถุประสงค์");
+    return;
+  }
+
+  if (!selectedGrant) {
+    showError("กรุณาเลือกแหล่งทุน");
+    return;
+  }
+
+  if (!selectedType) {
+    showError("กรุณาเลือกประเภทโครงการวิจัย");
+    return;
+  }
+
+  // Proceed with PDF generation if all validations pass
+  const doc = new jsPDF();
+  // ... rest of the existing PDF generation code ...
     // Load Thai font (Sarabun)
     doc.addFileToVFS("Sarabun-Regular.ttf", font);
     doc.addFont("Sarabun-Regular.ttf", "Sarabun", "normal");
@@ -905,8 +933,7 @@
       </div>
     </div>
     <div class="form-actions">
-      <button type="submit">ส่งเอกสารขออนุมัติทำการวิจัย</button>
-      <button type="button" on:click={generatePDF}>พิมพ์เอกสาร</button>
+      <button type="submit" on:click={generatePDF}>ส่งเอกสารขออนุมัติทำการวิจัย</button>
     </div>
   </form>
 </div>
