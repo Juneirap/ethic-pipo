@@ -179,7 +179,7 @@ export const editFile = async (c: Context) => {
 
     // แยกนามสกุลไฟล์
     const extension = path.extname(file.name);
-    const fileName = md5Hash + extension;
+    const fileName = file.name;
 
     // ใช้ UPLOAD_DIR แทนการใช้ process.cwd()
     await ensureUploadDir();

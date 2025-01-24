@@ -147,7 +147,7 @@
       // รีเฟรชรายการไฟล์
       await getPetitionFiles();
       // เปลี่ยนเส้นทาง URL
-      window.location.href = `http://localhost:3000/services/monitor/follow?id=${petitionId}`;
+      window.location.href = `http://localhost:3000/services/monitor/follow?id=${petitions.id}`;
     } catch (error) {
       console.error("Error:", error);
       alert(error instanceof Error ? error.message : "เกิดข้อผิดพลาดในการอัพโหลดไฟล์");
@@ -169,16 +169,17 @@
       );
 
       if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || "เกิดข้อผิดพลาดในการแก้ไขไฟล์");
+        throw new Error("เกิดข้อผิดพลาดในการแก้ไขไฟล์");
       }
 
       alert("แก้ไขไฟล์สำเร็จ");
       // รีเฟรชรายการไฟล์
       await getPetitionFiles();
+      // เปลี่ยนเส้นทาง URL
+      window.location.href = `http://localhost:3000/services/monitor/follow?id=${petitions.id}`;
     } catch (error) {
       console.error("Error:", error);
-      alert(error instanceof Error ? error.message : "เกิดข้อผิดพลาดในการแก้ไขไฟล์");
+      alert("เกิดข้อผิดพลาดในการแก้ไขไฟล์");
     }
   }
 
@@ -620,9 +621,9 @@
                         type="file"
                         style="display: none"
                         on:change={(e) => {
-                          const file = (e.target as any).files?.[0];
-                          if (file) {
-                            handleFileEdit(file, file);
+                          const target = e.target as HTMLInputElement;
+                          if (target && target.files && target.files[0]) {
+                            handleFileEdit(file, target.files[0]);
                           }
                         }}
                         id="edit-file-{file.id}"
@@ -687,9 +688,9 @@
                         type="file"
                         style="display: none"
                         on:change={(e) => {
-                          const file = (e.target as any).files?.[0];
-                          if (file) {
-                            handleFileEdit(file, file);
+                          const target = e.target as HTMLInputElement;
+                          if (target && target.files && target.files[0]) {
+                            handleFileEdit(file, target.files[0]);
                           }
                         }}
                         id="edit-file-{file.id}"
@@ -754,9 +755,9 @@
                         type="file"
                         style="display: none"
                         on:change={(e) => {
-                          const file = (e.target as any).files?.[0];
-                          if (file) {
-                            handleFileEdit(file, file);
+                          const target = e.target as HTMLInputElement;
+                          if (target && target.files && target.files[0]) {
+                            handleFileEdit(file, target.files[0]);
                           }
                         }}
                         id="edit-file-{file.id}"
@@ -821,9 +822,9 @@
                         type="file"
                         style="display: none"
                         on:change={(e) => {
-                          const file = (e.target as any).files?.[0];
-                          if (file) {
-                            handleFileEdit(file, file);
+                          const target = e.target as HTMLInputElement;
+                          if (target && target.files && target.files[0]) {
+                            handleFileEdit(file, target.files[0]);
                           }
                         }}
                         id="edit-file-{file.id}"
@@ -888,9 +889,9 @@
                         type="file"
                         style="display: none"
                         on:change={(e) => {
-                          const file = (e.target as any).files?.[0];
-                          if (file) {
-                            handleFileEdit(file, file);
+                          const target = e.target as HTMLInputElement;
+                          if (target && target.files && target.files[0]) {
+                            handleFileEdit(file, target.files[0]);
                           }
                         }}
                         id="edit-file-{file.id}"
@@ -969,9 +970,9 @@
                         type="file"
                         style="display: none"
                         on:change={(e) => {
-                          const file = (e.target as any).files?.[0];
-                          if (file) {
-                            handleFileEdit(file, file);
+                          const target = e.target as HTMLInputElement;
+                          if (target && target.files && target.files[0]) {
+                            handleFileEdit(file, target.files[0]);
                           }
                         }}
                         id="edit-file-{file.id}"
@@ -1036,9 +1037,9 @@
                         type="file"
                         style="display: none"
                         on:change={(e) => {
-                          const file = (e.target as any).files?.[0];
-                          if (file) {
-                            handleFileEdit(file, file);
+                          const target = e.target as HTMLInputElement;
+                          if (target && target.files && target.files[0]) {
+                            handleFileEdit(file, target.files[0]);
                           }
                         }}
                         id="edit-file-{file.id}"
@@ -1103,9 +1104,9 @@
                         type="file"
                         style="display: none"
                         on:change={(e) => {
-                          const file = (e.target as any).files?.[0];
-                          if (file) {
-                            handleFileEdit(file, file);
+                          const target = e.target as HTMLInputElement;
+                          if (target && target.files && target.files[0]) {
+                            handleFileEdit(file, target.files[0]);
                           }
                         }}
                         id="edit-file-{file.id}"
@@ -1170,9 +1171,9 @@
                         type="file"
                         style="display: none"
                         on:change={(e) => {
-                          const file = (e.target as any).files?.[0];
-                          if (file) {
-                            handleFileEdit(file, file);
+                          const target = e.target as HTMLInputElement;
+                          if (target && target.files && target.files[0]) {
+                            handleFileEdit(file, target.files[0]);
                           }
                         }}
                         id="edit-file-{file.id}"
@@ -1237,9 +1238,9 @@
                         type="file"
                         style="display: none"
                         on:change={(e) => {
-                          const file = (e.target as any).files?.[0];
-                          if (file) {
-                            handleFileEdit(file, file);
+                          const target = e.target as HTMLInputElement;
+                          if (target && target.files && target.files[0]) {
+                            handleFileEdit(file, target.files[0]);
                           }
                         }}
                         id="edit-file-{file.id}"
@@ -1305,9 +1306,9 @@
                         type="file"
                         style="display: none"
                         on:change={(e) => {
-                          const file = (e.target as any).files?.[0];
-                          if (file) {
-                            handleFileEdit(file, file);
+                          const target = e.target as HTMLInputElement;
+                          if (target && target.files && target.files[0]) {
+                            handleFileEdit(file, target.files[0]);
                           }
                         }}
                         id="edit-file-{file.id}"
