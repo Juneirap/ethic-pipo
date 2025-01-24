@@ -112,8 +112,7 @@
 
   // เพิ่มฟังก์ชันสำหรับการอัพโหลดไฟล์เพิ่มเติม
   async function handleFileUpload(event: Event, documentTypeId: number) {
-    const input = event.target as HTMLInputElement;
-    const file = input.files?.[0];
+    const file = (event.target as any).files?.[0];
     if (!file) return;
 
     const petitionId = $page.url.searchParams.get("id");
@@ -125,24 +124,33 @@
     try {
       const formData = new FormData();
       formData.append("file", file);
-      formData.append("petitionId", petitionId);
+      if (petitions.id === null) {
+        throw new Error("Petition ID is missing");
+      }
+      if (documentTypeId === null) {
+        throw new Error("Document Type ID is missing");
+      }
+      formData.append("petitionId", petitions.id.toString());
       formData.append("documentTypeId", documentTypeId.toString());
 
-      const response = await fetch(`http://localhost:8000/upload`, {
+      const response = await fetch(`http://localhost:8000/upload/upload/${petitions.id}/${documentTypeId}`, {
         method: "POST",
         body: formData,
       });
 
       if (!response.ok) {
-        throw new Error("เกิดข้อผิดพลาดในการอัพโหลดไฟล์");
+        const errorData = await response.json();
+        throw new Error(errorData.message || "เกิดข้อผิดพลาดในการอัพโหลดไฟล์");
       }
 
       alert("อัพโหลดไฟล์สำเร็จ");
       // รีเฟรชรายการไฟล์
       await getPetitionFiles();
+      // เปลี่ยนเส้นทาง URL
+      window.location.href = `http://localhost:3000/services/monitor/follow?id=${petitionId}`;
     } catch (error) {
       console.error("Error:", error);
-      alert("เกิดข้อผิดพลาดในการอัพโหลดไฟล์");
+      alert(error instanceof Error ? error.message : "เกิดข้อผิดพลาดในการอัพโหลดไฟล์");
     }
   }
 
@@ -161,7 +169,8 @@
       );
 
       if (!response.ok) {
-        throw new Error("เกิดข้อผิดพลาดในการแก้ไขไฟล์");
+        const errorData = await response.json();
+        throw new Error(errorData.message || "เกิดข้อผิดพลาดในการแก้ไขไฟล์");
       }
 
       alert("แก้ไขไฟล์สำเร็จ");
@@ -169,7 +178,7 @@
       await getPetitionFiles();
     } catch (error) {
       console.error("Error:", error);
-      alert("เกิดข้อผิดพลาดในการแก้ไขไฟล์");
+      alert(error instanceof Error ? error.message : "เกิดข้อผิดพลาดในการแก้ไขไฟล์");
     }
   }
 
@@ -180,16 +189,24 @@
     try {
       const response = await fetch(
         `http://localhost:8000/petitions/files?petitionId=${id}`,
+        {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+          },
+        },
       );
-      if (response.ok) {
-        const data = await response.json();
-        petitionFiles = data.files;
-        console.log("Petition files:", petitionFiles);
-      } else {
-        console.error("Failed to fetch petition files");
+
+      if (!response.ok) {
+        throw new Error("Failed to fetch petition files");
       }
+
+      const data = await response.json();
+      petitionFiles = data.files; // Update to use data.files instead of data
+      console.log("Petition files:", petitionFiles);
     } catch (error) {
       console.error("Error:", error);
+      alert("เกิดข้อผิดพลาดในการดึงข้อมูลไฟล์");
     }
   }
 
@@ -234,64 +251,52 @@
   }
 
   async function handleUpload(event: Event, documentTypeId: number) {
-    const input = event.target as HTMLInputElement;
+    const input = (event.target as any);
     const file = input.files?.[0];
     if (!file) return;
 
-    const petitionId = $page.url.searchParams.get("id");
-    if (!petitionId) return;
+    if (!petitions.id) {
+      alert("ไม่พบรหัสคำร้อง");
+      return;
+    }
 
     try {
       const formData = new FormData();
       formData.append("file", file);
-      formData.append("petitionId", petitionId);
+      if (petitions.id === null) {
+        throw new Error("Petition ID is missing");
+      }
+      if (documentTypeId === null) {
+        throw new Error("Document Type ID is missing");
+      }
+      formData.append("petitionId", petitions.id.toString());
       formData.append("documentTypeId", documentTypeId.toString());
 
-      const response = await fetch(
-        `http://localhost:8000/upload/upload/${petitionId}/${documentTypeId}`,
-        {
-          method: "POST",
-          body: formData,
-        },
-      );
+      const response = await fetch(`http://localhost:8000/upload/upload/${petitions.id}/${documentTypeId}`, {
+        method: "POST",
+        body: formData,
+      });
 
-      if (response.ok) {
-        alert("อัพโหลดไฟล์สำเร็จ");
-        // Optionally refresh the file list or perform other actions
-        getPetitionFiles(); // Refresh the file list after upload
-      } else {
-        console.error("Failed to upload file");
-        alert("เกิดข้อผิดพลาดในการอัพโหลดไฟล์");
+      if (!response.ok) {
+        throw new Error("เกิดข้อผิดพลาดในการอัพโหลดไฟล์");
       }
+
+      alert("อัพโหลดไฟล์สำเร็จ");
+      // รีเฟรชรายการไฟล์
+      await getPetitionFiles();
+      // เปลี่ยนเส้นทาง URL
+      window.location.href = `http://localhost:3000/services/monitor/follow?id=${petitions.id}`;
     } catch (error) {
       console.error("Error:", error);
       alert("เกิดข้อผิดพลาดในการอัพโหลดไฟล์");
     }
   }
+
   // เรียกใช้ฟังก์ชันเมื่อ component ถูกโหลด
   onMount(() => {
     getPetitionById();
     getPetitionFiles();
   });
-
-  // ฟังก์ชันสำหรับอัพเดทค่าเมื่อมีการเลือก radio
-  function handleObjectiveChange(event: Event) {
-    const value = (event.target as HTMLInputElement).value;
-    selectedObjective = value;
-    petitions.objectiveId = parseInt(value);
-  }
-
-  function handleGrantChange(event: Event) {
-    const value = (event.target as HTMLInputElement).value;
-    selectedGrant = value;
-    petitions.grantId = parseInt(value);
-  }
-
-  function handleTypeChange(event: Event) {
-    const value = (event.target as HTMLInputElement).value;
-    selectedType = value;
-    petitions.typeId = parseInt(value);
-  }
 
   // ฟังก์ชันสําหรับกลับไปหน้า ก่อนหน้า
   function goBack() {
@@ -474,7 +479,6 @@
             name="objective"
             value="1"
             checked={selectedObjective === "1"}
-            on:change={handleObjectiveChange}
           />
           การทำวิจัย
         </label>
@@ -484,7 +488,6 @@
             name="objective"
             value="2"
             checked={selectedObjective === "2"}
-            on:change={handleObjectiveChange}
           />
           การขอขึ้นทะเบียนยาในประเทศ
         </label>
@@ -494,7 +497,6 @@
             name="objective"
             value="3"
             checked={selectedObjective === "3"}
-            on:change={handleObjectiveChange}
           />
           อื่น ๆ
           <div class="dotted-line">
@@ -518,7 +520,6 @@
             name="grant"
             value="1"
             checked={selectedGrant === "1"}
-            on:change={handleGrantChange}
           />
           มรภ.บร.</label
         >
@@ -528,7 +529,6 @@
             name="grant"
             value="2"
             checked={selectedGrant === "2"}
-            on:change={handleGrantChange}
           />
           ส่วนตัว
         </label>
@@ -538,7 +538,6 @@
             name="grant"
             value="3"
             checked={selectedGrant === "3"}
-            on:change={handleGrantChange}
           />
           แหล่งทุนภายนอก
           <div class="dotted-line">
@@ -562,7 +561,6 @@
             name="type"
             value="1"
             checked={selectedType === "1"}
-            on:change={handleTypeChange}
           />
           ทั่วไป (เกี่ยวข้องกับมนุษย์โดยตรง)
         </label>
@@ -572,7 +570,6 @@
             name="type"
             value="2"
             checked={selectedType === "2"}
-            on:change={handleTypeChange}
           />
           ความเสี่ยงต่ำ (เช่น ศึกษาข้อมูลย้อนหลังจากเวชระเบียน บทความ บทสัมภาษณ์
           แบบสอบถาม ศึกษาสิ่งส่งตรวจต่างๆ จำกร่างกาย เป็นต้น)
@@ -583,7 +580,6 @@
             name="type"
             value="3"
             checked={selectedType === "3"}
-            on:change={handleTypeChange}
           />
           เข้าข่ายยกเว้นการรับรอง
         </label>
@@ -624,9 +620,9 @@
                         type="file"
                         style="display: none"
                         on:change={(e) => {
-                          const target = e.target as HTMLInputElement;
-                          if (target && target.files && target.files[0]) {
-                            handleFileEdit(file, target.files[0]);
+                          const file = (e.target as any).files?.[0];
+                          if (file) {
+                            handleFileEdit(file, file);
                           }
                         }}
                         id="edit-file-{file.id}"
@@ -691,9 +687,9 @@
                         type="file"
                         style="display: none"
                         on:change={(e) => {
-                          const target = e.target as HTMLInputElement;
-                          if (target && target.files && target.files[0]) {
-                            handleFileEdit(file, target.files[0]);
+                          const file = (e.target as any).files?.[0];
+                          if (file) {
+                            handleFileEdit(file, file);
                           }
                         }}
                         id="edit-file-{file.id}"
@@ -758,9 +754,9 @@
                         type="file"
                         style="display: none"
                         on:change={(e) => {
-                          const target = e.target as HTMLInputElement;
-                          if (target && target.files && target.files[0]) {
-                            handleFileEdit(file, target.files[0]);
+                          const file = (e.target as any).files?.[0];
+                          if (file) {
+                            handleFileEdit(file, file);
                           }
                         }}
                         id="edit-file-{file.id}"
@@ -825,9 +821,9 @@
                         type="file"
                         style="display: none"
                         on:change={(e) => {
-                          const target = e.target as HTMLInputElement;
-                          if (target && target.files && target.files[0]) {
-                            handleFileEdit(file, target.files[0]);
+                          const file = (e.target as any).files?.[0];
+                          if (file) {
+                            handleFileEdit(file, file);
                           }
                         }}
                         id="edit-file-{file.id}"
@@ -892,9 +888,9 @@
                         type="file"
                         style="display: none"
                         on:change={(e) => {
-                          const target = e.target as HTMLInputElement;
-                          if (target && target.files && target.files[0]) {
-                            handleFileEdit(file, target.files[0]);
+                          const file = (e.target as any).files?.[0];
+                          if (file) {
+                            handleFileEdit(file, file);
                           }
                         }}
                         id="edit-file-{file.id}"
@@ -973,9 +969,9 @@
                         type="file"
                         style="display: none"
                         on:change={(e) => {
-                          const target = e.target as HTMLInputElement;
-                          if (target && target.files && target.files[0]) {
-                            handleFileEdit(file, target.files[0]);
+                          const file = (e.target as any).files?.[0];
+                          if (file) {
+                            handleFileEdit(file, file);
                           }
                         }}
                         id="edit-file-{file.id}"
@@ -1000,13 +996,13 @@
                   <input
                     type="file"
                     style="display: none"
-                    on:change={(e) => handleFileUpload(e, 5)}
-                    id="upload-file-5"
+                    on:change={(e) => handleUpload(e, 3)}
+                    id="upload-file-3"
                   />
                   <button
                     class="action-button upload-button"
                     on:click={() => {
-                      const element = document.getElementById("upload-file-5");
+                      const element = document.getElementById("upload-file-3");
                       if (element) element.click();
                     }}
                   >
@@ -1017,8 +1013,8 @@
             </td>
           </tr>
           <tr>
-            <td class="border px-4 py-2">
-              2. แบบประเมินโครงการวิจัยด้วยตนเอง (Self-Assessment Form)
+            <td class="border px-4 py-2"
+              >2. แบบประเมินโครงการวิจัยด้วยตนเอง (Self-Assessment Form)
             </td>
             <td class="border px-4 py-2">
               {#if petitionFiles.filter((f) => f.documentTypeId === 5).length > 0}
@@ -1040,9 +1036,9 @@
                         type="file"
                         style="display: none"
                         on:change={(e) => {
-                          const target = e.target as HTMLInputElement;
-                          if (target && target.files && target.files[0]) {
-                            handleFileEdit(file, target.files[0]);
+                          const file = (e.target as any).files?.[0];
+                          if (file) {
+                            handleFileEdit(file, file);
                           }
                         }}
                         id="edit-file-{file.id}"
@@ -1067,7 +1063,7 @@
                   <input
                     type="file"
                     style="display: none"
-                    on:change={(e) => handleFileUpload(e, 5)}
+                    on:change={(e) => handleUpload(e, 5)}
                     id="upload-file-5"
                   />
                   <button
@@ -1107,9 +1103,9 @@
                         type="file"
                         style="display: none"
                         on:change={(e) => {
-                          const target = e.target as HTMLInputElement;
-                          if (target && target.files && target.files[0]) {
-                            handleFileEdit(file, target.files[0]);
+                          const file = (e.target as any).files?.[0];
+                          if (file) {
+                            handleFileEdit(file, file);
                           }
                         }}
                         id="edit-file-{file.id}"
@@ -1134,7 +1130,7 @@
                   <input
                     type="file"
                     style="display: none"
-                    on:change={(e) => handleFileUpload(e, 6)}
+                    on:change={(e) => handleUpload(e, 6)}
                     id="upload-file-6"
                   />
                   <button
@@ -1174,9 +1170,9 @@
                         type="file"
                         style="display: none"
                         on:change={(e) => {
-                          const target = e.target as HTMLInputElement;
-                          if (target && target.files && target.files[0]) {
-                            handleFileEdit(file, target.files[0]);
+                          const file = (e.target as any).files?.[0];
+                          if (file) {
+                            handleFileEdit(file, file);
                           }
                         }}
                         id="edit-file-{file.id}"
@@ -1201,7 +1197,7 @@
                   <input
                     type="file"
                     style="display: none"
-                    on:change={(e) => handleFileUpload(e, 7)}
+                    on:change={(e) => handleUpload(e, 7)}
                     id="upload-file-7"
                   />
                   <button
@@ -1241,9 +1237,9 @@
                         type="file"
                         style="display: none"
                         on:change={(e) => {
-                          const target = e.target as HTMLInputElement;
-                          if (target && target.files && target.files[0]) {
-                            handleFileEdit(file, target.files[0]);
+                          const file = (e.target as any).files?.[0];
+                          if (file) {
+                            handleFileEdit(file, file);
                           }
                         }}
                         id="edit-file-{file.id}"
@@ -1268,7 +1264,7 @@
                   <input
                     type="file"
                     style="display: none"
-                    on:change={(e) => handleFileUpload(e, 8)}
+                    on:change={(e) => handleUpload(e, 8)}
                     id="upload-file-8"
                   />
                   <button
@@ -1309,9 +1305,9 @@
                         type="file"
                         style="display: none"
                         on:change={(e) => {
-                          const target = e.target as HTMLInputElement;
-                          if (target && target.files && target.files[0]) {
-                            handleFileEdit(file, target.files[0]);
+                          const file = (e.target as any).files?.[0];
+                          if (file) {
+                            handleFileEdit(file, file);
                           }
                         }}
                         id="edit-file-{file.id}"
@@ -1336,7 +1332,7 @@
                   <input
                     type="file"
                     style="display: none"
-                    on:change={(e) => handleFileUpload(e, 11)}
+                    on:change={(e) => handleUpload(e, 11)}
                     id="upload-file-11"
                   />
                   <button
