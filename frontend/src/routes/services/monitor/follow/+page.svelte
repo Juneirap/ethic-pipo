@@ -5,7 +5,7 @@
 
   // สร้างตัวแปรสำหรับวันที่ปัจจุบัน
   let currentDate = new Date().toISOString().split("T")[0];
-  let currentLevelId = 0;  
+  let currentLevelId = 0;
 
   let petitions = {
     id: null,
@@ -245,6 +245,41 @@
     }
   }
 
+  async function handleUpload(event: Event, documentTypeId: number) {
+    const input = event.target as HTMLInputElement;
+    const file = input.files?.[0];
+    if (!file) return;
+
+    const petitionId = $page.url.searchParams.get("id");
+    if (!petitionId) return;
+
+    try {
+      const formData = new FormData();
+      formData.append("file", file);
+      formData.append("petitionId", petitionId);
+      formData.append("documentTypeId", documentTypeId.toString());
+
+      const response = await fetch(
+        `http://localhost:8000/upload/upload/${petitionId}/${documentTypeId}`,
+        {
+          method: "POST",
+          body: formData,
+        }
+      );
+
+      if (response.ok) {
+        alert("อัพโหลดไฟล์สำเร็จ");
+        // Optionally refresh the file list or perform other actions
+        getPetitionFiles(); // Refresh the file list after upload
+      } else {
+        console.error("Failed to upload file");
+        alert("เกิดข้อผิดพลาดในการอัพโหลดไฟล์");
+      }
+    } catch (error) {
+      console.error("Error:", error);
+      alert("เกิดข้อผิดพลาดในการอัพโหลดไฟล์");
+    }
+  }
   // เรียกใช้ฟังก์ชันเมื่อ component ถูกโหลด
   onMount(() => {
     getPetitionById();
@@ -669,7 +704,7 @@
                         }}
                         id="edit-file-{file.id}"
                       />
-                      {#if petitions.statusId !== 3&& petitions.statusId !== 1 && petitions.statusId !== 2}
+                      {#if petitions.statusId !== 3 && petitions.statusId !== 1 && petitions.statusId !== 2}
                         <button
                           class="action-button edit-button"
                           on:click={() => {
@@ -886,7 +921,7 @@
       </table>
     </div>
 
-    <div class="document-table"style="margin-top: 20px;">
+    <div class="document-table" style="margin-top: 20px;">
       <h3>เอกสารประกอบการพิจารณา (ขั้นอนุกรรมการ)</h3>
       <table>
         <thead>
@@ -931,7 +966,9 @@
                         <button
                           class="action-button edit-button"
                           on:click={() => {
-                            const element = document.getElementById(`edit-file-${file.id}`);
+                            const element = document.getElementById(
+                              `edit-file-${file.id}`
+                            );
                             if (element) element.click();
                           }}
                         >
@@ -990,7 +1027,9 @@
                         <button
                           class="action-button edit-button"
                           on:click={() => {
-                            const element = document.getElementById(`edit-file-${file.id}`);
+                            const element = document.getElementById(
+                              `edit-file-${file.id}`
+                            );
                             if (element) element.click();
                           }}
                         >
@@ -1049,7 +1088,9 @@
                         <button
                           class="action-button edit-button"
                           on:click={() => {
-                            const element = document.getElementById(`edit-file-${file.id}`);
+                            const element = document.getElementById(
+                              `edit-file-${file.id}`
+                            );
                             if (element) element.click();
                           }}
                         >
@@ -1108,7 +1149,9 @@
                         <button
                           class="action-button edit-button"
                           on:click={() => {
-                            const element = document.getElementById(`edit-file-${file.id}`);
+                            const element = document.getElementById(
+                              `edit-file-${file.id}`
+                            );
                             if (element) element.click();
                           }}
                         >
@@ -1167,7 +1210,9 @@
                         <button
                           class="action-button edit-button"
                           on:click={() => {
-                            const element = document.getElementById(`edit-file-${file.id}`);
+                            const element = document.getElementById(
+                              `edit-file-${file.id}`
+                            );
                             if (element) element.click();
                           }}
                         >
@@ -1193,7 +1238,8 @@
           </tr>
           <tr>
             <td class="border px-4 py-2">
-              6. Investigator’s brochure / ทะเบียนและเอกสารกำกับยาหรือเครื่องมือ (ถ้ามี)
+              6. Investigator’s brochure / ทะเบียนและเอกสารกำกับยาหรือเครื่องมือ
+              (ถ้ามี)
             </td>
             <td class="border px-4 py-2">
               {#if petitionFiles.filter((f) => f.documentTypeId === 11).length > 0}
@@ -1226,7 +1272,9 @@
                         <button
                           class="action-button edit-button"
                           on:click={() => {
-                            const element = document.getElementById(`edit-file-${file.id}`);
+                            const element = document.getElementById(
+                              `edit-file-${file.id}`
+                            );
                             if (element) element.click();
                           }}
                         >
@@ -1253,7 +1301,6 @@
         </tbody>
       </table>
     </div>
-    
 
     <div class="evaluation-section">
       <h3>ข้อเสนอแนะ</h3>
@@ -1273,7 +1320,6 @@
     </div>
   </form>
 </div>
-
 
 <style>
   .form-container {

@@ -331,7 +331,6 @@
       for (const [documentId, fileData] of Object.entries(uploadedFiles)) {
         const formData = new FormData();
         formData.append("file", fileData.file);
-
         const response = await fetch(
           `http://localhost:8000/upload/upload/${petitionId}/${documentId}`,
           {
