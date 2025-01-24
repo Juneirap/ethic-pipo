@@ -300,10 +300,13 @@ export const searchPetitionsByPhoneNumber = async (c: any) => {
           title_en: petition.title_en,
           objective: petitionObjectiveType.description,
           grant: petitionGrant.description,
-          type: petitionType.description,
-          status: petitionStatus.description,
+          typeId: petitionType.id, // Add typeId
+          typeDescription: petitionType.description, // Add type description
+          statusId: petitionStatus.id, // Add statusId
+          statusDescription: petitionStatus.description, // Add status description
           researcher: sql`CONCAT(${researcher.name}, ' ', ${researcher.surname})`,
           currentLevel: petitionLevel.description,
+          currentLevelId: petition.currentLevelId,
           staff: sql`CONCAT(${staff.name}, ' ', ${staff.surname})`,
           note: petition.note,
           created_at: sql`DATE_FORMAT(${petition.createdAt}, '%H:%i : %d-%m-%Y')`,
