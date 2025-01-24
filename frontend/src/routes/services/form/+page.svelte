@@ -198,6 +198,7 @@
 
   async function handleSubmit(event: Event) {
     event.preventDefault();
+    let shouldGeneratePDF = true;
 
     try {
       // ตรวจสอบข้อมูลที่จำเป็น
@@ -230,11 +231,16 @@
         return;
       }
 
+      // ตรวจสอบไฟล์ที่จำเป็น (มี **)
       const requiredDocs = [1, 2, 4, 9, 10];
-      const missingFiles = requiredDocs.filter((id) => !uploadedFiles[id]);
+      const missingFiles = requiredDocs.filter(id => !uploadedFiles[id]);
 
       if (missingFiles.length > 0) {
-        alert(`กรุณาอัพโหลดไฟล์สำหรับเอกสารที่ระบุไว้`);
+        const missingDocTypes = documentTypes
+          .filter(doc => missingFiles.includes(doc.id))
+          .map(doc => doc.description)
+          .join("\n- ");
+        alert(`กรุณาอัพโหลดไฟล์ที่จำเป็น:\n- ${missingDocTypes}`);
         return;
       }
 
@@ -242,35 +248,20 @@
 
       // ถ้าไม่ได้เลือกนักวิจัยที่มีอยู่ ให้สร้างนักวิจัยใหม่
       if (!selectedResearcher) {
-        // Submit the researcher data
-        const researcherResponse = await fetch(
-          "http://localhost:8000/researchers",
-          {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify(researcherData),
-          }
-        );
+        const researcherResponse = await fetch("http://localhost:8000/researchers", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(researcherData),
+        });
 
         if (!researcherResponse.ok) {
           const errorData = await researcherResponse.json();
-          throw new Error(
-            errorData.error || "Failed to submit researcher data"
-          );
+          throw new Error(errorData.error || "Failed to submit researcher data");
         }
 
-        const latestResponse = await fetch(
-          "http://localhost:8000/researchers/latest",
-          {
-            method: "GET",
-            headers: {
-              "Content-Type": "application/json",
-            },
-          }
-        );
-
+        const latestResponse = await fetch("http://localhost:8000/researchers/latest");
         if (!latestResponse.ok) {
           throw new Error("Failed to get latest researcher ID");
         }
@@ -310,16 +301,7 @@
       }
 
       // Get latest petition ID
-      const latestPetitionResponse = await fetch(
-        "http://localhost:8000/petitions/latest",
-        {
-          method: "GET",
-          headers: {
-            "Content-Type": "application/json",
-          },
-        }
-      );
-
+      const latestPetitionResponse = await fetch("http://localhost:8000/petitions/latest");
       if (!latestPetitionResponse.ok) {
         throw new Error("Failed to get latest petition ID");
       }
@@ -331,314 +313,331 @@
       for (const [documentId, fileData] of Object.entries(uploadedFiles)) {
         const formData = new FormData();
         formData.append("file", fileData.file);
-        const response = await fetch(
-          `http://localhost:8000/upload/upload/${petitionId}/${documentId}`,
-          {
-            method: "POST",
-            body: formData,
-          }
-        );
+        
+        try {
+          const response = await fetch(
+            `http://localhost:8000/upload/upload/${petitionId}/${documentId}`,
+            {
+              method: "POST",
+              body: formData,
+            }
+          );
 
-        if (!response.ok) {
-          throw new Error(`ไฟล์ช่องที่ ${documentId} คุณซ้ำ`);
+          if (!response.ok) {
+            const errorData = await response.json();
+            shouldGeneratePDF = false; // ไม่สร้าง PDF ถ้ามีไฟล์ซ้ำ
+            throw new Error(errorData.message || `ไฟล์ช่องที่ ${documentId} ซ้ำ`);
+          }
+        } catch (error) {
+          shouldGeneratePDF = false; // ไม่สร้าง PDF ถ้ามีข้อผิดพลาด
+          // ถ้าเกิดข้อผิดพลาดในการอัพโหลดไฟล์ใดๆ ให้ลบ petition ที่เพิ่งสร้าง
+          await fetch(`http://localhost:8000/petitions/${petitionId}`, {
+            method: "DELETE",
+          });
+          throw new Error(`เกิดข้อผิดพลาดในการอัพโหลดไฟล์: ${error.message}`);
         }
       }
 
-      alert("บันทึกข้อมูลสำเร็จ");
-
-      // Reset all form fields
-      uploadedFiles = {};
-      researcherData = {
-        prenameId: "",
-        name: "",
-        surname: "",
-        departmentId: "",
-        telNo: "",
-        email: "",
-      };
-
-      formData = {
-        correspondenceNo: "",
-        title_th: "",
-        title_en: "",
-        objectiveId: undefined,
-        objectiveOther: "",
-        grantId: undefined,
-        grantOther: "",
-        typeId: undefined,
-        researcherId: undefined,
-        note: "",
-      };
-
-      // Reset search terms and selections
-      researcherSearchTerm = "";
-      departmentSearchTerm = "";
-      selectedFaculty = "";
-      selectedResearcher = null;
-      selectedObjective = undefined;
-      selectedGrant = undefined;
-      selectedType = undefined;
-      petitionId = null;
-
-      // Reset file inputs
-      const fileInputs = document.querySelectorAll('input[type="file"]');
-      fileInputs.forEach((input: HTMLInputElement) => {
-        input.value = "";
-      });
-
-      // Reset radio buttons
-      const radioButtons = document.querySelectorAll('input[type="radio"]');
-      radioButtons.forEach((radio: HTMLInputElement) => {
-        radio.checked = false;
-      });
-
-      // Reset text inputs
-      const textInputs = document.querySelectorAll('input[type="text"]');
-      textInputs.forEach((input: HTMLInputElement) => {
-        input.value = "";
-      });
-
-      // Reset date input
-      const dateInput = document.querySelector(
-        'input[type="date"]'
-      ) as HTMLInputElement;
-      if (dateInput) {
-        dateInput.value = currentDate;
+      // สร้าง PDF เฉพาะเมื่อไม่มีไฟล์ซ้ำหรือข้อผิดพลาด
+      if (shouldGeneratePDF) {
+        generatePDF();
+        alert("บันทึกข้อมูลสำเร็จ");
+        resetForm();
       }
+      
     } catch (error) {
       console.error("Error submitting form:", error);
-      alert("กรุณาตรวจสอบชื่อไฟล์เอกสาร: " + error.message);
+      alert(error.message || "เกิดข้อผิดพลาดในการบันทึกข้อมูล");
+    }
+  }
+
+  function resetForm() {
+    // Reset all form fields
+    uploadedFiles = {};
+    researcherData = {
+      prenameId: "",
+      name: "",
+      surname: "",
+      departmentId: "",
+      telNo: "",
+      email: "",
+    };
+
+    formData = {
+      correspondenceNo: "",
+      title_th: "",
+      title_en: "",
+      objectiveId: undefined,
+      objectiveOther: "",
+      grantId: undefined,
+      grantOther: "",
+      typeId: undefined,
+      researcherId: undefined,
+      note: "",
+    };
+
+    // Reset search terms and selections
+    researcherSearchTerm = "";
+    departmentSearchTerm = "";
+    selectedFaculty = "";
+    selectedResearcher = null;
+    selectedObjective = undefined;
+    selectedGrant = undefined;
+    selectedType = undefined;
+    petitionId = null;
+
+    // Reset file inputs
+    const fileInputs = document.querySelectorAll('input[type="file"]');
+    fileInputs.forEach((input: HTMLInputElement) => {
+      input.value = "";
+    });
+
+    // Reset radio buttons
+    const radioButtons = document.querySelectorAll('input[type="radio"]');
+    radioButtons.forEach((radio: HTMLInputElement) => {
+      radio.checked = false;
+    });
+
+    // Reset text inputs
+    const textInputs = document.querySelectorAll('input[type="text"]');
+    textInputs.forEach((input: HTMLInputElement) => {
+      input.value = "";
+    });
+
+    // Reset date input
+    const dateInput = document.querySelector('input[type="date"]') as HTMLInputElement;
+    if (dateInput) {
+      dateInput.value = currentDate;
     }
   }
 
   const generatePDF = () => {
-    // Validation checks
-    const requiredDocs = [1, 2, 4, 9, 10];
-    const missingFiles = requiredDocs.filter((id) => !uploadedFiles[id]);
-
-    if (missingFiles.length > 0) {
-      showError(`กรุณาอัพโหลดไฟล์สำหรับเอกสาร: ${missingFiles.join(", ")}`);
-      return;
-    }
-
-    if (
-      !researcherData.prenameId ||
-      !researcherData.name ||
-      !researcherData.surname
-    ) {
-      showError("กรุณากรอกข้อมูลคำนำหน้า, ชื่อ และนามสกุล");
-      return;
-    }
-
-    if (!formData.title_th || !formData.title_en) {
-      showError("กรุณากรอกชื่อเรื่องภาษาไทยและภาษาอังกฤษ");
-      return;
-    }
-
-    if (!selectedObjective) {
-      showError("กรุณาเลือกวัตถุประสงค์");
-      return;
-    }
-
-    if (!selectedGrant) {
-      showError("กรุณาเลือกแหล่งทุน");
-      return;
-    }
-
-    if (!selectedType) {
-      showError("กรุณาเลือกประเภทโครงการวิจัย");
-      return;
-    }
-
-    // Proceed with PDF generation if all validations pass
-    const doc = new jsPDF();
-    // ... rest of the existing PDF generation code ...
-    // Load Thai font (Sarabun)
-    doc.addFileToVFS("Sarabun-Regular.ttf", font);
-    doc.addFont("Sarabun-Regular.ttf", "Sarabun", "normal");
-    doc.setFont("Sarabun", "normal");
-
-    // Header Section
-    const logo =
-      "https://th.bing.com/th/id/OIP.CFJHa2V7Aq9YTw8qF2GLzwHaIn?rs=1&pid=ImgDetMain";
-    doc.addImage(logo, "JPEG", 10, 10, 20, 20);
-    doc.setFontSize(16);
-    doc.text("บันทึกข้อความ", 105, 20, { align: "center" });
-    doc.text("มหาวิทยาลัยราชภัฏบุรีรัมย์", 105, 30, { align: "center" });
-    doc.setFontSize(12);
-    doc.text("BRU-H1", 200, 20, { align: "right" });
-
-    // Document Information
-    doc.setFontSize(10);
-    doc.text(`เลขเอกสาร :   ${formData.correspondenceNo}`, 20, 50);
-    doc.line(38, 52, 149, 52); // Draw dot line
-
-    doc.text(`วันที่ :   ${currentDate}`, 150, 50);
-
-    // Subject and Addressee
-    doc.setLineHeightFactor(1.5);
-    doc.text(
-      "เรื่อง : ขออนุมัติทำการวิจัยในมนุษย์และขอรับการรับรองจากคณะกรรมการจริยธรรมการวิจัยในมนุษย์",
-      20,
-      60
-    );
-    doc.text("เรียน : ผู้อำนวยการสถาบันวิจัยและพัฒนา", 20, 70);
-
-    // Researcher Information
-    const selectedPrename = prenames.find(
-      (prename) => prename.id === Number(researcherData.prenameId)
-    );
-    doc.text(
-      `ด้วยข้าพเจ้า :   ${selectedPrename ? selectedPrename.description : ""} ${researcherData.name} ${researcherData.surname}`,
-      20,
-      80
-    );
-    doc.line(39, 82, 180, 82); // Draw dot line
-
-    doc.text(`สำนักวิชา :   ${departmentSearchTerm}`, 20, 90);
-    doc.line(36, 92, 180, 92); // Draw dot line
-
-    doc.text(`คณะ :   ${selectedFaculty}`, 20, 100);
-    doc.line(29, 102, 180, 102); // Draw dot line
-
-    doc.text(`โทรศัพท์ :   ${researcherData.telNo}`, 20, 110);
-    doc.line(35, 112, 180, 112); // Draw dot line
-
-    doc.text(`อีเมล :   ${researcherData.email}`, 20, 120);
-    doc.line(30, 122, 180, 122); // Draw dot line
-
-    // Research Details
-    doc.text(
-      `มีความประสงค์จะทำวิจัยเรื่อง (ภาษาไทย) :   ${formData.title_th}`,
-      20,
-      130
-    );
-    doc.line(81, 132, 180, 132); // Draw dot line
-
-    doc.text(`(ภาษาอังกฤษ) :   ${formData.title_en}`, 20, 140);
-    doc.line(43, 142, 180, 142); // Draw dot line
-    doc.text("เพื่อ :", 20, 150);
-
-    // Objectives
-    const objectives = [
-      { id: 1, text: "การทำวิจัย", selected: selectedObjective === 1 },
-      {
-        id: 2,
-        text: "การขอขึ้นทะเบียนยาในประเทศ",
-        selected: selectedObjective === 2,
-      },
-      {
-        id: 3,
-        text: "อื่นๆ (โปรดระบุ)",
-        selected: selectedObjective === 3,
-        other: formData.objectiveOther,
-      },
-    ];
-
-    objectives.forEach((obj, index) => {
-      doc.circle(25, 160 + index * 10, 1.5); // Draw circle for checkbox
-      if (obj.selected) {
-        doc.circle(25, 160 + index * 10, 1, "F"); // Fill circle if selected
+    try {
+      // ตรวจสอบข้อมูลที่จำเป็นก่อนสร้าง PDF
+      if (!researcherData.prenameId || !researcherData.name || !researcherData.surname) {
+        throw new Error("กรุณากรอกข้อมูลคำนำหน้า ชื่อ และนามสกุล");
       }
-      doc.text(obj.text, 30, 161 + index * 10);
-      if (obj.other) {
-        doc.text(obj.other, 30, 190); // Additional text for "other" option
+
+      if (!formData.title_th || !formData.title_en) {
+        throw new Error("กรุณากรอกชื่อเรื่องภาษาไทยและภาษาอังกฤษ");
       }
-      doc.line(30, 192, 180, 192); // Draw dot line below the other text
-    });
 
-    // Funding Section
-    doc.text("ได้รับทุนสนับสนุนการทำวิจัยจาก :", 20, 200);
-    const grants = [
-      { id: 1, text: "มรภ.บร.", selected: selectedGrant === 1 },
-      { id: 2, text: "ส่วนตัว", selected: selectedGrant === 2 },
-      {
-        id: 3,
-        text: "แหล่งทุนภายนอก (โปรดระบุ)",
-        selected: selectedGrant === 3,
-        other: formData.grantOther,
-      },
-    ];
-
-    grants.forEach((grant, index) => {
-      doc.circle(25, 210 + index * 10, 1.5); // Draw circle for checkbox
-      if (grant.selected) {
-        doc.circle(25, 210 + index * 10, 1, "F"); // Fill circle if selected
+      if (!selectedObjective) {
+        throw new Error("กรุณาเลือกวัตถุประสงค์");
       }
-      doc.text(grant.text, 30, 211 + index * 10);
-      if (grant.other) {
-        doc.text(grant.other, 30, 240); // Additional text for "other" option
+
+      if (!selectedGrant) {
+        throw new Error("กรุณาเลือกแหล่งทุน");
       }
-      doc.line(30, 242, 180, 242); // Draw dot line below the other text
-    });
 
-    // Research Project Type
-    doc.text("ประเภทโครงการวิจัย :", 20, 250);
-    const types = [
-      {
-        id: 1,
-        text: "ทั่วไป (เกี่ยวข้องกับมนุษย์โดยตรง)",
-        selected: selectedType === 1,
-      },
-      {
-        id: 2,
-        text: "ความเสี่ยงต่ำ (เช่น ศึกษาข้อมูลย้อนหลังจากเวชระเบียน บทความ บทสัมภาษณ์)",
-        selected: selectedType === 2,
-      },
-    ];
-
-    types.forEach((type, index) => {
-      doc.circle(25, 260 + index * 10, 1.5); // Draw circle for checkbox
-      if (type.selected) {
-        doc.circle(25, 260 + index * 10, 1, "F"); // Fill circle if selected
+      if (!selectedType) {
+        throw new Error("กรุณาเลือกประเภทโครงการวิจัย");
       }
-      doc.text(type.text, 30, 261 + index * 10);
-    });
 
-    // Document Attachment Section
-    doc.addPage(); // Add new page
-    doc.text("โดยได้แนบเอกสารประกอบการพิจารณา จำนวน 2 ชุด ดังนี้", 20, 20);
-    let yPosition = 35; // Starting position for the document table
-    doc.setFontSize(10);
+      const requiredDocs = [1, 2, 4, 9, 10];
+      const missingFiles = requiredDocs.filter(id => !uploadedFiles[id]);
 
-    // Draw table headers
-    doc.text("รายการเอกสาร", 23, yPosition);
-    doc.text("อัพโหลดไฟล์", 152, yPosition);
-    yPosition += 10;
+      if (missingFiles.length > 0) {
+        const missingDocTypes = documentTypes
+          .filter(doc => missingFiles.includes(doc.id))
+          .map(doc => doc.description)
+          .join("\n- ");
+        throw new Error(`กรุณาอัพโหลดไฟล์ที่จำเป็น:\n- ${missingDocTypes}`);
+      }
 
-    // Draw the top border of the table
-    doc.line(20, yPosition - 6, 180, yPosition - 6); // Top border
+      // สร้าง PDF ถ้าผ่านการตรวจสอบทั้งหมด
+      const doc = new jsPDF();
+      // ... rest of the existing PDF generation code ...
+      // Load Thai font (Sarabun)
+      doc.addFileToVFS("Sarabun-Regular.ttf", font);
+      doc.addFont("Sarabun-Regular.ttf", "Sarabun", "normal");
+      doc.setFont("Sarabun", "normal");
 
-    // Draw a line to close the header
-    doc.line(20, yPosition - 17, 180, yPosition - 17); // Header closing line
+      // Header Section
+      const logo =
+        "https://th.bing.com/th/id/OIP.CFJHa2V7Aq9YTw8qF2GLzwHaIn?rs=1&pid=ImgDetMain";
+      doc.addImage(logo, "JPEG", 10, 10, 20, 20);
+      doc.setFontSize(16);
+      doc.text("บันทึกข้อความ", 105, 20, { align: "center" });
+      doc.text("มหาวิทยาลัยราชภัฏบุรีรัมย์", 105, 30, { align: "center" });
+      doc.setFontSize(12);
+      doc.text("BRU-H1", 200, 20, { align: "right" });
 
-    documentTypes.forEach((docType) => {
-      doc.text(`${docType.id}. ${docType.description}`, 23, yPosition);
-      const fileStatus = uploadedFiles[docType.id]
-        ? uploadedFiles[docType.id].name.length > 5
-          ? uploadedFiles[docType.id].name.slice(0, 5) +
-            "." +
-            uploadedFiles[docType.id].name.split(".").pop()
-          : uploadedFiles[docType.id].name
-        : "ไม่มีเอกสาร";
-      doc.text(fileStatus, 153, yPosition);
+      // Document Information
+      doc.setFontSize(10);
+      doc.text(`เลขเอกสาร :   ${formData.correspondenceNo}`, 20, 50);
+      doc.line(38, 52, 149, 52); // Draw dot line
+
+      doc.text(`วันที่ :   ${currentDate}`, 150, 50);
+
+      // Subject and Addressee
+      doc.setLineHeightFactor(1.5);
+      doc.text(
+        "เรื่อง : ขออนุมัติทำการวิจัยในมนุษย์และขอรับการรับรองจากคณะกรรมการจริยธรรมการวิจัยในมนุษย์",
+        20,
+        60
+      );
+      doc.text("เรียน : ผู้อำนวยการสถาบันวิจัยและพัฒนา", 20, 70);
+
+      // Researcher Information
+      const selectedPrename = prenames.find(
+        (prename) => prename.id === Number(researcherData.prenameId)
+      );
+      doc.text(
+        `ด้วยข้าพเจ้า :   ${selectedPrename ? selectedPrename.description : ""} ${researcherData.name} ${researcherData.surname}`,
+        20,
+        80
+      );
+      doc.line(39, 82, 180, 82); // Draw dot line
+
+      doc.text(`สำนักวิชา :   ${departmentSearchTerm}`, 20, 90);
+      doc.line(36, 92, 180, 92); // Draw dot line
+
+      doc.text(`คณะ :   ${selectedFaculty}`, 20, 100);
+      doc.line(29, 102, 180, 102); // Draw dot line
+
+      doc.text(`โทรศัพท์ :   ${researcherData.telNo}`, 20, 110);
+      doc.line(35, 112, 180, 112); // Draw dot line
+
+      doc.text(`อีเมล :   ${researcherData.email}`, 20, 120);
+      doc.line(30, 122, 180, 122); // Draw dot line
+
+      // Research Details
+      doc.text(
+        `มีความประสงค์จะทำวิจัยเรื่อง (ภาษาไทย) :   ${formData.title_th}`,
+        20,
+        130
+      );
+      doc.line(81, 132, 180, 132); // Draw dot line
+
+      doc.text(`(ภาษาอังกฤษ) :   ${formData.title_en}`, 20, 140);
+      doc.line(43, 142, 180, 142); // Draw dot line
+      doc.text("เพื่อ :", 20, 150);
+
+      // Objectives
+      const objectives = [
+        { id: 1, text: "การทำวิจัย", selected: selectedObjective === 1 },
+        {
+          id: 2,
+          text: "การขอขึ้นทะเบียนยาในประเทศ",
+          selected: selectedObjective === 2,
+        },
+        {
+          id: 3,
+          text: "อื่นๆ (โปรดระบุ)",
+          selected: selectedObjective === 3,
+          other: formData.objectiveOther,
+        },
+      ];
+
+      objectives.forEach((obj, index) => {
+        doc.circle(25, 160 + index * 10, 1.5); // Draw circle for checkbox
+        if (obj.selected) {
+          doc.circle(25, 160 + index * 10, 1, "F"); // Fill circle if selected
+        }
+        doc.text(obj.text, 30, 161 + index * 10);
+        if (obj.other) {
+          doc.text(obj.other, 30, 190); // Additional text for "other" option
+        }
+        doc.line(30, 192, 180, 192); // Draw dot line below the other text
+      });
+
+      // Funding Section
+      doc.text("ได้รับทุนสนับสนุนการทำวิจัยจาก :", 20, 200);
+      const grants = [
+        { id: 1, text: "มรภ.บร.", selected: selectedGrant === 1 },
+        { id: 2, text: "ส่วนตัว", selected: selectedGrant === 2 },
+        {
+          id: 3,
+          text: "แหล่งทุนภายนอก (โปรดระบุ)",
+          selected: selectedGrant === 3,
+          other: formData.grantOther,
+        },
+      ];
+
+      grants.forEach((grant, index) => {
+        doc.circle(25, 210 + index * 10, 1.5); // Draw circle for checkbox
+        if (grant.selected) {
+          doc.circle(25, 210 + index * 10, 1, "F"); // Fill circle if selected
+        }
+        doc.text(grant.text, 30, 211 + index * 10);
+        if (grant.other) {
+          doc.text(grant.other, 30, 240); // Additional text for "other" option
+        }
+        doc.line(30, 242, 180, 242); // Draw dot line below the other text
+      });
+
+      // Research Project Type
+      doc.text("ประเภทโครงการวิจัย :", 20, 250);
+      const types = [
+        {
+          id: 1,
+          text: "ทั่วไป (เกี่ยวข้องกับมนุษย์โดยตรง)",
+          selected: selectedType === 1,
+        },
+        {
+          id: 2,
+          text: "ความเสี่ยงต่ำ (เช่น ศึกษาข้อมูลย้อนหลังจากเวชระเบียน บทความ บทสัมภาษณ์)",
+          selected: selectedType === 2,
+        },
+      ];
+
+      types.forEach((type, index) => {
+        doc.circle(25, 260 + index * 10, 1.5); // Draw circle for checkbox
+        if (type.selected) {
+          doc.circle(25, 260 + index * 10, 1, "F"); // Fill circle if selected
+        }
+        doc.text(type.text, 30, 261 + index * 10);
+      });
+
+      // Document Attachment Section
+      doc.addPage(); // Add new page
+      doc.text("โดยได้แนบเอกสารประกอบการพิจารณา จำนวน 2 ชุด ดังนี้", 20, 20);
+      let yPosition = 35; // Starting position for the document table
+      doc.setFontSize(10);
+
+      // Draw table headers
+      doc.text("รายการเอกสาร", 23, yPosition);
+      doc.text("อัพโหลดไฟล์", 152, yPosition);
       yPosition += 10;
-    });
 
-    // Draw the bottom border of the table
-    yPosition -= 5; // Move up by 5 units
-    doc.line(20, yPosition, 180, yPosition); // Bottom border
+      // Draw the top border of the table
+      doc.line(20, yPosition - 6, 180, yPosition - 6); // Top border
 
-    // Draw vertical lines for column separation
-    doc.line(143, 28, 143, yPosition); // Vertical line for "รายการเอกสาร"
-    // Draw additional vertical lines
-    doc.line(20, 28, 20, yPosition); // Vertical line for the left side
-    doc.line(180, 28, 180, yPosition); // Vertical line for the right side
+      // Draw a line to close the header
+      doc.line(20, yPosition - 17, 180, yPosition - 17); // Header closing line
 
-    // Save the PDF
-    doc.save(
-      "เอกสารขออนุมัติทำการวิจัยในมนุษย์และขอรับการรับรองจากคณะกรรมการจริยธรรมการวิจัยในมนุษย์.pdf"
-    );
+      documentTypes.forEach((docType) => {
+        doc.text(`${docType.id}. ${docType.description}`, 23, yPosition);
+        const fileStatus = uploadedFiles[docType.id]
+          ? uploadedFiles[docType.id].name.length > 5
+            ? uploadedFiles[docType.id].name.slice(0, 5) +
+              "." +
+              uploadedFiles[docType.id].name.split(".").pop()
+            : uploadedFiles[docType.id].name
+          : "ไม่มีเอกสาร";
+        doc.text(fileStatus, 153, yPosition);
+        yPosition += 10;
+      });
+
+      // Draw the bottom border of the table
+      yPosition -= 5; // Move up by 5 units
+      doc.line(20, yPosition, 180, yPosition); // Bottom border
+
+      // Draw vertical lines for column separation
+      doc.line(143, 28, 143, yPosition); // Vertical line for "รายการเอกสาร"
+      // Draw additional vertical lines
+      doc.line(20, 28, 20, yPosition); // Vertical line for the left side
+      doc.line(180, 28, 180, yPosition); // Vertical line for the right side
+
+      // Save the PDF
+      doc.save(
+        "เอกสารขออนุมัติทำการวิจัยในมนุษย์และขอรับการรับรองจากคณะกรรมการจริยธรรมการวิจัยในมนุษย์.pdf"
+      );
+    } catch (error) {
+      console.error("Error generating PDF:", error);
+      alert("เกิดข้อผิดพลาดในการสร้าง PDF");
+    }
   };
 
   fetchDocumentTypes();
