@@ -6,7 +6,6 @@
 
   // สร้างตัวแปรสำหรับวันที่ปัจจุบัน
   let currentDate = new Date().toISOString().split("T")[0];
-  
 
   // Prename data
   let prenames: Array<{
@@ -231,6 +230,14 @@
         return;
       }
 
+      const requiredDocs = [1, 2, 4, 9, 10];
+      const missingFiles = requiredDocs.filter((id) => !uploadedFiles[id]);
+
+      if (missingFiles.length > 0) {
+        alert(`กรุณาอัพโหลดไฟล์สำหรับเอกสารที่ระบุไว้`);
+        return;
+      }
+
       let researcherId;
 
       // ถ้าไม่ได้เลือกนักวิจัยที่มีอยู่ ให้สร้างนักวิจัยใหม่
@@ -407,34 +414,46 @@
 
   const generatePDF = () => {
     // Validation checks
-  if (!researcherData.prenameId || !researcherData.name || !researcherData.surname) {
-    showError("กรุณากรอกข้อมูลคำนำหน้า, ชื่อ และนามสกุล");
-    return;
-  }
+    const requiredDocs = [1, 2, 4, 9, 10];
+    const missingFiles = requiredDocs.filter((id) => !uploadedFiles[id]);
 
-  if (!formData.title_th || !formData.title_en) {
-    showError("กรุณากรอกชื่อเรื่องภาษาไทยและภาษาอังกฤษ");
-    return;
-  }
+    if (missingFiles.length > 0) {
+      showError(`กรุณาอัพโหลดไฟล์สำหรับเอกสาร: ${missingFiles.join(", ")}`);
+      return;
+    }
 
-  if (!selectedObjective) {
-    showError("กรุณาเลือกวัตถุประสงค์");
-    return;
-  }
+    if (
+      !researcherData.prenameId ||
+      !researcherData.name ||
+      !researcherData.surname
+    ) {
+      showError("กรุณากรอกข้อมูลคำนำหน้า, ชื่อ และนามสกุล");
+      return;
+    }
 
-  if (!selectedGrant) {
-    showError("กรุณาเลือกแหล่งทุน");
-    return;
-  }
+    if (!formData.title_th || !formData.title_en) {
+      showError("กรุณากรอกชื่อเรื่องภาษาไทยและภาษาอังกฤษ");
+      return;
+    }
 
-  if (!selectedType) {
-    showError("กรุณาเลือกประเภทโครงการวิจัย");
-    return;
-  }
+    if (!selectedObjective) {
+      showError("กรุณาเลือกวัตถุประสงค์");
+      return;
+    }
 
-  // Proceed with PDF generation if all validations pass
-  const doc = new jsPDF();
-  // ... rest of the existing PDF generation code ...
+    if (!selectedGrant) {
+      showError("กรุณาเลือกแหล่งทุน");
+      return;
+    }
+
+    if (!selectedType) {
+      showError("กรุณาเลือกประเภทโครงการวิจัย");
+      return;
+    }
+
+    // Proceed with PDF generation if all validations pass
+    const doc = new jsPDF();
+    // ... rest of the existing PDF generation code ...
     // Load Thai font (Sarabun)
     doc.addFileToVFS("Sarabun-Regular.ttf", font);
     doc.addFont("Sarabun-Regular.ttf", "Sarabun", "normal");
@@ -618,7 +637,9 @@
     doc.line(180, 28, 180, yPosition); // Vertical line for the right side
 
     // Save the PDF
-    doc.save("เอกสารขออนุมัติทำการวิจัยในมนุษย์และขอรับการรับรองจากคณะกรรมการจริยธรรมการวิจัยในมนุษย์.pdf");
+    doc.save(
+      "เอกสารขออนุมัติทำการวิจัยในมนุษย์และขอรับการรับรองจากคณะกรรมการจริยธรรมการวิจัยในมนุษย์.pdf"
+    );
   };
 
   fetchDocumentTypes();
@@ -897,7 +918,12 @@
           <tbody>
             {#each documentTypes as doc}
               <tr>
-                <td>{doc.id}. {doc.description}</td>
+                <td>
+                  {doc.id}. {doc.description}
+                  {#if doc.id === 1 || doc.id === 2 || doc.id === 4 || doc.id === 9 || doc.id === 10}
+                    <span class="asterisk">**</span>
+                  {/if}
+                </td>
                 <td>
                   <div class="upload-container">
                     <label
@@ -933,7 +959,9 @@
       </div>
     </div>
     <div class="form-actions">
-      <button type="submit" on:click={generatePDF}>ส่งเอกสารขออนุมัติทำการวิจัย</button>
+      <button type="submit" on:click={generatePDF}
+        >ส่งเอกสารขออนุมัติทำการวิจัย</button
+      >
     </div>
   </form>
 </div>
@@ -1228,5 +1256,9 @@
     overflow: hidden; /* Hide overflow */
     text-overflow: ellipsis; /* Add ellipsis for overflow text */
     max-width: 150px; /* Set a maximum width for the file name */
+  }
+
+  .asterisk {
+    color: red; /* Optional: Change color of the asterisk */
   }
 </style>
