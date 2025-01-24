@@ -215,3 +215,46 @@ export const editFile = async (c: Context) => {
     );
   }
 };
+
+export const checkFile = async (c: Context) => {
+  try {
+    const petitionId = parseInt(c.req.param("petitionId"));
+    const documentTypeId = parseInt(c.req.param("documentTypeId"));
+    const filename = c.req.param("filename");
+
+    if (!petitionId || !documentTypeId || !filename) {
+      return c.json({ 
+        error: "Missing required parameters", 
+        message: "กรุณาระบุข้อมูลให้ครบถ้วน" 
+      }, 400);
+    }
+
+    // ค้นหาไฟล์ในฐานข้อมูล
+    const existingFiles = await db
+      .select()
+      .from(petitionFiles)
+      .where(
+        eq(petitionFiles.petitionId, petitionId) && 
+        eq(petitionFiles.documentTypeId, documentTypeId) && 
+        eq(petitionFiles.name, filename)
+      );
+
+    if (existingFiles.length > 0) {
+      return c.json({ 
+        error: "Duplicate file", 
+        message: `ไฟล์ ${filename} สำหรับเอกสารประเภทนี้มีอยู่แล้ว` 
+      }, 409); // 409 Conflict
+    }
+
+    return c.json({ 
+      message: "File can be uploaded",
+      exists: false 
+    }, 200);
+  } catch (error) {
+    console.error("Error checking file:", error);
+    return c.json({ 
+      error: "Server error", 
+      message: "เกิดข้อผิดพลาดในการตรวจสอบไฟล์" 
+    }, 500);
+  }
+};

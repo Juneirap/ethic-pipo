@@ -201,35 +201,30 @@
     let shouldGeneratePDF = true;
 
     try {
-      // ตรวจสอบข้อมูลที่จำเป็น
-      if (
-        !researcherData.prenameId ||
-        !researcherData.name ||
-        !researcherData.surname
-      ) {
-        alert("กรุณากรอกข้อมูลคำนำหน้า ชื่อ และนามสกุล");
-        return;
-      }
+      // 1. ตรวจสอบข้อมูลที่จำเป็น
+      const validationErrors = [];
 
-      if (!formData.title_th || !formData.title_en) {
-        alert("กรุณากรอกชื่อเรื่องภาษาไทยและภาษาอังกฤษ");
-        return;
-      }
+      // ตรวจสอบข้อมูลนักวิจัย
+      if (!researcherData.prenameId) validationErrors.push("กรุณาเลือกคำนำหน้า");
+      if (!researcherData.name) validationErrors.push("กรุณากรอกชื่อ");
+      if (!researcherData.surname) validationErrors.push("กรุณากรอกนามสกุล");
+      if (!researcherData.telNo) validationErrors.push("กรุณากรอกเบอร์โทรศัพท์");
+      if (!researcherData.email) validationErrors.push("กรุณากรอกอีเมล");
+      if (!departmentSearchTerm) validationErrors.push("กรุณาเลือกสำนักวิชา");
+      if (!selectedFaculty) validationErrors.push("กรุณาเลือกคณะ");
 
-      if (!selectedObjective) {
-        alert("กรุณาเลือกวัตถุประสงค์");
-        return;
+      // ตรวจสอบข้อมูลโครงการวิจัย
+      if (!formData.title_th) validationErrors.push("กรุณากรอกชื่อเรื่องภาษาไทย");
+      if (!formData.title_en) validationErrors.push("กรุณากรอกชื่อเรื่องภาษาอังกฤษ");
+      if (!selectedObjective) validationErrors.push("กรุณาเลือกวัตถุประสงค์");
+      if (selectedObjective === 3 && !formData.objectiveOther) {
+        validationErrors.push("กรุณาระบุวัตถุประสงค์อื่นๆ");
       }
-
-      if (!selectedGrant) {
-        alert("กรุณาเลือกแหล่งทุน");
-        return;
+      if (!selectedGrant) validationErrors.push("กรุณาเลือกแหล่งทุน");
+      if (selectedGrant === 3 && !formData.grantOther) {
+        validationErrors.push("กรุณาระบุแหล่งทุนภายนอก");
       }
-
-      if (!selectedType) {
-        alert("กรุณาเลือกประเภทโครงการวิจัย");
-        return;
-      }
+      if (!selectedType) validationErrors.push("กรุณาเลือกประเภทโครงการวิจัย");
 
       // ตรวจสอบไฟล์ที่จำเป็น (มี **)
       const requiredDocs = [1, 2, 4, 9, 10];
@@ -238,15 +233,18 @@
       if (missingFiles.length > 0) {
         const missingDocTypes = documentTypes
           .filter(doc => missingFiles.includes(doc.id))
-          .map(doc => doc.description)
-          .join("\n- ");
-        alert(`กรุณาอัพโหลดไฟล์ที่จำเป็น:\n- ${missingDocTypes}`);
+          .map(doc => doc.description);
+        validationErrors.push(`กรุณาอัพโหลดไฟล์ที่จำเป็น:\n- ${missingDocTypes.join("\n- ")}`);
+      }
+
+      // ถ้ามีข้อผิดพลาด ให้แสดงทั้งหมดและยกเลิกการบันทึก
+      if (validationErrors.length > 0) {
+        alert(`กรุณาตรวจสอบและกรอกข้อมูลให้ครบถ้วน:\n\n${validationErrors.join("\n")}`);
         return;
       }
 
+      // 2. สร้างนักวิจัยใหม่ (ถ้าจำเป็น)
       let researcherId;
-
-      // ถ้าไม่ได้เลือกนักวิจัยที่มีอยู่ ให้สร้างนักวิจัยใหม่
       if (!selectedResearcher) {
         const researcherResponse = await fetch("http://localhost:8000/researchers", {
           method: "POST",
@@ -258,12 +256,12 @@
 
         if (!researcherResponse.ok) {
           const errorData = await researcherResponse.json();
-          throw new Error(errorData.error || "Failed to submit researcher data");
+          throw new Error(errorData.error || "ไม่สามารถบันทึกข้อมูลนักวิจัยได้");
         }
 
         const latestResponse = await fetch("http://localhost:8000/researchers/latest");
         if (!latestResponse.ok) {
-          throw new Error("Failed to get latest researcher ID");
+          throw new Error("ไม่สามารถดึงข้อมูลนักวิจัยได้");
         }
 
         const latestResearcher = await latestResponse.json();
@@ -272,7 +270,7 @@
         researcherId = selectedResearcher.id;
       }
 
-      // อัพเดท formData ก่อนส่ง
+      // 3. สร้าง petition
       const petitionPayload = {
         ...formData,
         researcherId: researcherId,
@@ -286,7 +284,7 @@
         staffId: "1",
       };
 
-      // Submit petition
+      // 4. บันทึก petition
       const petitionResponse = await fetch("http://localhost:8000/petitions", {
         method: "POST",
         headers: {
@@ -297,48 +295,61 @@
 
       if (!petitionResponse.ok) {
         const errorData = await petitionResponse.json();
-        throw new Error(errorData.error || "Failed to submit petition");
+        // ถ้าบันทึก petition ไม่สำเร็จ และเราสร้างนักวิจัยใหม่ ให้ลบนักวิจัยที่เพิ่งสร้าง
+        if (!selectedResearcher && researcherId) {
+          await fetch(`http://localhost:8000/researchers/${researcherId}`, {
+            method: "DELETE",
+          });
+        }
+        throw new Error(errorData.error || "ไม่สามารถบันทึกคำร้องได้");
       }
 
-      // Get latest petition ID
+      // 5. ดึง petition ID ล่าสุด
       const latestPetitionResponse = await fetch("http://localhost:8000/petitions/latest");
       if (!latestPetitionResponse.ok) {
-        throw new Error("Failed to get latest petition ID");
+        throw new Error("ไม่สามารถดึงเลขที่คำร้องได้");
       }
-
       const latestPetition = await latestPetitionResponse.json();
       petitionId = latestPetition[0].id;
 
-      // Upload all files with petition ID and document type ID
+      // 6. อัพโหลดไฟล์ทั้งหมด
+      const uploadPromises = [];
       for (const [documentId, fileData] of Object.entries(uploadedFiles)) {
         const formData = new FormData();
         formData.append("file", fileData.file);
         
-        try {
-          const response = await fetch(
-            `http://localhost:8000/upload/upload/${petitionId}/${documentId}`,
-            {
-              method: "POST",
-              body: formData,
-            }
-          );
-
+        const uploadPromise = fetch(
+          `http://localhost:8000/upload/upload/${petitionId}/${documentId}`,
+          {
+            method: "POST",
+            body: formData,
+          }
+        ).then(async response => {
           if (!response.ok) {
             const errorData = await response.json();
-            shouldGeneratePDF = false; // ไม่สร้าง PDF ถ้ามีไฟล์ซ้ำ
-            throw new Error(errorData.message || `ไฟล์ช่องที่ ${documentId} ซ้ำ`);
+            throw new Error(errorData.message || `ไม่สามารถอัพโหลดไฟล์ช่องที่ ${documentId}`);
           }
-        } catch (error) {
-          shouldGeneratePDF = false; // ไม่สร้าง PDF ถ้ามีข้อผิดพลาด
-          // ถ้าเกิดข้อผิดพลาดในการอัพโหลดไฟล์ใดๆ ให้ลบ petition ที่เพิ่งสร้าง
-          await fetch(`http://localhost:8000/petitions/${petitionId}`, {
-            method: "DELETE",
-          });
-          throw new Error(`เกิดข้อผิดพลาดในการอัพโหลดไฟล์: ${error.message}`);
-        }
+        });
+        uploadPromises.push(uploadPromise);
       }
 
-      // สร้าง PDF เฉพาะเมื่อไม่มีไฟล์ซ้ำหรือข้อผิดพลาด
+      try {
+        await Promise.all(uploadPromises);
+      } catch (error) {
+        // ถ้าเกิดข้อผิดพลาดในการอัพโหลดไฟล์ ให้ลบ petition ที่เพิ่งสร้าง
+        await fetch(`http://localhost:8000/petitions/${petitionId}`, {
+          method: "DELETE",
+        });
+        // และถ้าเราสร้างนักวิจัยใหม่ ให้ลบนักวิจัยด้วย
+        if (!selectedResearcher && researcherId) {
+          await fetch(`http://localhost:8000/researchers/${researcherId}`, {
+            method: "DELETE",
+          });
+        }
+        throw new Error(`เกิดข้อผิดพลาดในการอัพโหลดไฟล์: ${error.message}`);
+      }
+
+      // 7. สร้าง PDF และรีเซ็ตฟอร์ม
       if (shouldGeneratePDF) {
         generatePDF();
         alert("บันทึกข้อมูลสำเร็จ");
