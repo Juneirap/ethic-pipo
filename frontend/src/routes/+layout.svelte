@@ -6,6 +6,7 @@
   import Sidebar from "../components/Sidebar.svelte";
   import Footer from "../components/Footer.svelte";
   import Breadcrumb from "../components/Breadcrumb.svelte";
+  import Toast from "$lib/components/Toast.svelte";
 
   interface Link {
     href: string;
@@ -88,6 +89,7 @@
   </div>
 
   <Footer />
+  <Toast />
 </div>
 
 <style>

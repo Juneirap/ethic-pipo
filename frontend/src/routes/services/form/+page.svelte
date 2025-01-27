@@ -3,6 +3,7 @@
   import jsPDF from "jspdf";
   import "jspdf-autotable";
   import { font } from "../form/Sarabun-Regular-normal.js";
+  import { toastStore } from '$lib/stores/toast';
 
   // สร้างตัวแปรสำหรับวันที่ปัจจุบัน
   let currentDate = new Date().toISOString().split("T")[0];
@@ -239,7 +240,7 @@
 
       // ถ้ามีข้อผิดพลาด ให้แสดงทั้งหมดและยกเลิกการบันทึก
       if (validationErrors.length > 0) {
-        alert(`กรุณาตรวจสอบและกรอกข้อมูลให้ครบถ้วน:\n\n${validationErrors.join("\n")}`);
+        toastStore.show(`กรุณาตรวจสอบและกรอกข้อมูลให้ครบถ้วน:\n\n${validationErrors.join("\n")}`, "error");
         return;
       }
 
@@ -352,13 +353,13 @@
       // 7. สร้าง PDF และรีเซ็ตฟอร์ม
       if (shouldGeneratePDF) {
         generatePDF();
-        alert("บันทึกข้อมูลสำเร็จ");
+        toastStore.show("บันทึกข้อมูลสำเร็จ", "success");
         resetForm();
       }
       
     } catch (error) {
       console.error("Error submitting form:", error);
-      alert(error.message || "เกิดข้อผิดพลาดในการบันทึกข้อมูล");
+      toastStore.show(error.message || "เกิดข้อผิดพลาดในการบันทึกข้อมูล", "error");
     }
   }
 
@@ -647,7 +648,7 @@
       );
     } catch (error) {
       console.error("Error generating PDF:", error);
-      alert("เกิดข้อผิดพลาดในการสร้าง PDF");
+      toastStore.show("เกิดข้อผิดพลาดในการสร้าง PDF", "error");
     }
   };
 

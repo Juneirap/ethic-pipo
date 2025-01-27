@@ -2,6 +2,7 @@
   import { onMount } from "svelte";
   import { page } from "$app/stores";
   import { goto } from "$app/navigation";
+  import { toastStore } from '$lib/stores/toast';
 
   // สร้างตัวแปรสำหรับวันที่ปัจจุบัน
   let currentDate = new Date().toISOString().split("T")[0];
@@ -106,7 +107,7 @@
       setTimeout(() => window.URL.revokeObjectURL(url), 1000);
     } catch (error) {
       console.error("Error opening file:", error);
-      alert("ไม่สามารถเปิดไฟล์ได้");
+      toastStore.show("ไม่สามารถเปิดไฟล์ได้", "error");
     }
   };
 
@@ -117,7 +118,7 @@
 
     const petitionId = $page.url.searchParams.get("id");
     if (!petitionId) {
-      alert("ไม่พบรหัสคำร้อง");
+      toastStore.show("ไม่พบรหัสคำร้อง", "error");
       return;
     }
 
@@ -143,14 +144,14 @@
         throw new Error(errorData.message || "เกิดข้อผิดพลาดในการอัพโหลดไฟล์");
       }
 
-      alert("อัพโหลดไฟล์สำเร็จ");
+      toastStore.show("อัพโหลดไฟล์สำเร็จ", "success");
       // รีเฟรชรายการไฟล์
       await getPetitionFiles();
       // เปลี่ยนเส้นทาง URL
       window.location.href = `http://localhost:3000/services/monitor/follow?id=${petitions.id}`;
     } catch (error) {
       console.error("Error:", error);
-      alert(error instanceof Error ? error.message : "เกิดข้อผิดพลาดในการอัพโหลดไฟล์");
+      toastStore.show(error instanceof Error ? error.message : "เกิดข้อผิดพลาดในการอัพโหลดไฟล์", "error");
     }
   }
 
@@ -172,14 +173,14 @@
         throw new Error("เกิดข้อผิดพลาดในการแก้ไขไฟล์");
       }
 
-      alert("แก้ไขไฟล์สำเร็จ");
+      toastStore.show("แก้ไขไฟล์สำเร็จ", "success");
       // รีเฟรชรายการไฟล์
       await getPetitionFiles();
       // เปลี่ยนเส้นทาง URL
       window.location.href = `http://localhost:3000/services/monitor/follow?id=${petitions.id}`;
     } catch (error) {
       console.error("Error:", error);
-      alert("เกิดข้อผิดพลาดในการแก้ไขไฟล์");
+      toastStore.show("เกิดข้อผิดพลาดในการแก้ไขไฟล์", "error");
       window.location.href = `http://localhost:3000/services/monitor/follow?id=${petitions.id}`;
     }
   }
@@ -208,7 +209,7 @@
       console.log("Petition files:", petitionFiles);
     } catch (error) {
       console.error("Error:", error);
-      alert("เกิดข้อผิดพลาดในการดึงข้อมูลไฟล์");
+      toastStore.show("เกิดข้อผิดพลาดในการดึงข้อมูลไฟล์", "error");
     }
   }
 
@@ -258,7 +259,7 @@
     if (!file) return;
 
     if (!petitions.id) {
-      alert("ไม่พบรหัสคำร้อง");
+      toastStore.show("ไม่พบรหัสคำร้อง", "error");
       return;
     }
 
@@ -283,14 +284,14 @@
         throw new Error("เกิดข้อผิดพลาดในการอัพโหลดไฟล์");
       }
 
-      alert("อัพโหลดไฟล์สำเร็จ");
+      toastStore.show("อัพโหลดไฟล์สำเร็จ", "success");
       // รีเฟรชรายการไฟล์
       await getPetitionFiles();
       // เปลี่ยนเส้นทาง URL
       window.location.href = `http://localhost:3000/services/monitor/follow?id=${petitions.id}`;
     } catch (error) {
       console.error("Error:", error);
-      alert("เกิดข้อผิดพลาดในการอัพโหลดไฟล์");
+      toastStore.show("เกิดข้อผิดพลาดในการอัพโหลดไฟล์", "error");
       window.location.href = `http://localhost:3000/services/monitor/follow?id=${petitions.id}`;
     }
   }

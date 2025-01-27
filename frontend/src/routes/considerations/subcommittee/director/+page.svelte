@@ -2,6 +2,7 @@
   import { onMount } from "svelte";
   import { page } from "$app/stores";
   import { goto } from "$app/navigation";
+  import { toastStore } from '$lib/stores/toast';
 
   // สร้างตัวแปรสำหรับวันที่ปัจจุบัน
   let currentDate = new Date().toISOString().split("T")[0];
@@ -107,7 +108,7 @@
       setTimeout(() => window.URL.revokeObjectURL(url), 1000);
     } catch (error) {
       console.error("Error opening file:", error);
-      alert("ไม่สามารถเปิดไฟล์ได้");
+      toastStore.show("ไม่สามารถเปิดไฟล์ได้", "error");
     }
   };
 
@@ -132,15 +133,15 @@
       });
 
       if (response.ok) {
-        alert("อัพโหลดไฟล์สำเร็จ");
+        toastStore.show("อัพโหลดไฟล์สำเร็จ", "success");
         // รีเฟรชรายการไฟล์
         getPetitionFiles();
       } else {
-        alert("เกิดข้อผิดพลาดในการอัพโหลดไฟล์");
+        toastStore.show("เกิดข้อผิดพลาดในการอัพโหลดไฟล์", "error");
       }
     } catch (error) {
       console.error("Error:", error);
-      alert("เกิดข้อผิดพลาดในการอัพโหลดไฟล์");
+      toastStore.show("เกิดข้อผิดพลาดในการอัพโหลดไฟล์", "error");
     }
   }
 
@@ -160,7 +161,7 @@
 
       if (response.ok) {
         const data = await response.json();
-        alert("แก้ไขไฟล์สำเร็จ");
+        toastStore.show("แก้ไขไฟล์สำเร็จ", "success");
 
         // อัพเดทรายการไฟล์ในหน้าเว็บทันที
         petitionFiles = petitionFiles.map((pf) => {
@@ -178,11 +179,11 @@
         // Redirect กลับไปที่หน้า director พร้อม id
         goto(`/considerations/subcommittee/director?id=${petitions.id}`);
       } else {
-        alert("เกิดข้อผิดพลาดในการแก้ไขไฟล์");
+        toastStore.show("เกิดข้อผิดพลาดในการแก้ไขไฟล์", "error");
       }
     } catch (error) {
       console.error("Error:", error);
-      alert("เกิดข้อผิดพลาดในการแก้ไขไฟล์");
+      toastStore.show("เกิดข้อผิดพลาดในการแก้ไขไฟล์", "error");
     }
   }
 
@@ -299,14 +300,14 @@
       });
 
       if (response.ok) {
-        alert("บันทึกการพิจารณาเรียบร้อยแล้ว");
+        toastStore.show("บันทึกการพิจารณาเรียบร้อยแล้ว", "success");
         window.location.href = "/considerations/subcommittee";
       } else {
-        alert("เกิดข้อผิดพลาดในการบันทึก");
+        toastStore.show("เกิดข้อผิดพลาดในการบันทึก", "error");
       }
     } catch (error) {
       console.error("Error:", error);
-      alert("เกิดข้อผิดพลาดในการบันทึก");
+      toastStore.show("เกิดข้อผิดพลาดในการบันทึก", "error");
     }
   }
 
@@ -336,14 +337,14 @@
       });
 
       if (response.ok) {
-        alert("บันทึกการพิจารณาเรียบร้อยแล้ว");
+        toastStore.show("บันทึกการพิจารณาเรียบร้อยแล้ว", "success");
         window.location.href = "/considerations/subcommittee";
       } else {
-        alert("เกิดข้อผิดพลาดในการบันทึก");
+        toastStore.show("เกิดข้อผิดพลาดในการบันทึก", "error");
       }
     } catch (error) {
       console.error("Error:", error);
-      alert("เกิดข้อผิดพลาดในการบันทึก");
+      toastStore.show("เกิดข้อผิดพลาดในการบันทึก", "error");
     }
   }
 
@@ -373,14 +374,14 @@
       });
 
       if (response.ok) {
-        alert("บันทึกการพิจารณาเรียบร้อยแล้ว");
+        toastStore.show("บันทึกการพิจารณาเรียบร้อยแล้ว", "success");
         window.location.href = "/considerations/subcommittee";
       } else {
-        alert("เกิดข้อผิดพลาดในการบันทึก");
+        toastStore.show("เกิดข้อผิดพลาดในการบันทึก", "error");
       }
     } catch (error) {
       console.error("Error:", error);
-      alert("เกิดข้อผิดพลาดในการบันทึก");
+      toastStore.show("เกิดข้อผิดพลาดในการบันทึก", "error");
     }
   }
 
@@ -410,14 +411,14 @@
       });
 
       if (response.ok) {
-        alert("บันทึกการพิจารณาเรียบร้อยแล้ว");
+        toastStore.show("บันทึกการพิจารณาเรียบร้อยแล้ว", "success");
         window.location.href = "/considerations/subcommittee";
       } else {
-        alert("เกิดข้อผิดพลาดในการบันทึก");
+        toastStore.show("เกิดข้อผิดพลาดในการบันทึก", "error");
       }
     } catch (error) {
       console.error("Error:", error);
-      alert("เกิดข้อผิดพลาดในการบันทึก");
+      toastStore.show("เกิดข้อผิดพลาดในการบันทึก", "error");
     }
   }
 </script>
