@@ -108,36 +108,71 @@
   }
 
   let searchPhone = '';
-  async function searchPetitions() {
+  let isSearching = false;
+  let searchError = null;
+
+  // ฟังก์ชันดีเลย์การค้นหา
+  function debounce(func, wait) {
+    let timeout;
+    return function executedFunction(...args) {
+      const later = () => {
+        clearTimeout(timeout);
+        func(...args);
+      };
+      clearTimeout(timeout);
+      timeout = setTimeout(later, wait);
+    };
+  }
+
+  // ฟังก์ชันค้นหาด้วยเบอร์โทร
+  const searchPetitions = debounce(async () => {
+    if (!searchPhone.trim()) {
+      await fetchPetitions(); // รีเซ็ตกลับไปแสดงข้อมูลทั้งหมด
+      searchError = null;
+      return;
+    }
+
     try {
-      if (searchPhone.trim() === '') {
-        // If search input is empty, show all petitions
-        filteredPetitionsStatus1and4 = petitions.filter(
-          (petition) => petition.statusId === 1 || petition.statusId === 4
-        );
-        filteredPetitionsStatus2and3 = petitions.filter(
-          (petition) => petition.statusId === 2 || petition.statusId === 3
-        );
+      isSearching = true;
+      searchError = null;
+
+      // ตรวจสอบรูปแบบเบอร์โทร
+      const phoneRegex = /^[0-9]{10}$/;
+      if (!phoneRegex.test(searchPhone.trim())) {
+        searchError = "กรุณากรอกเบอร์โทรศัพท์ให้ถูกต้อง (ตัวเลข 10 หลัก)";
         return;
       }
 
-      const response = await fetch(`http://localhost:8000/petitions/search?telNo=${searchPhone}`);
+      const response = await fetch(`http://localhost:8000/petitions/search?telNo=${searchPhone.trim()}`);
       if (response.ok) {
-        const filteredPetitions = await response.json();
-        filteredPetitionsStatus1and4 = filteredPetitions.filter(
+        const searchResults = await response.json();
+        
+        // แยกข้อมูลตาม status
+        filteredPetitionsStatus1and4 = searchResults.filter(
           (petition) => petition.statusId === 1 || petition.statusId === 4
         );
-        filteredPetitionsStatus2and3 = filteredPetitions.filter(
+        filteredPetitionsStatus2and3 = searchResults.filter(
           (petition) => petition.statusId === 2 || petition.statusId === 3
         );
-        return;
+
+        // รีเซ็ตหน้าเพจกลับไปหน้าแรก
+        currentPageStatus1and4 = 1;
+        currentPageStatus2and3 = 1;
+
+        if (searchResults.length === 0) {
+          searchError = "ไม่พบข้อมูลคำร้องที่ตรงกับเบอร์โทรศัพท์นี้";
+        }
       } else {
-        console.error('Failed to fetch petitions');
+        const errorData = await response.json();
+        searchError = errorData.message || "เกิดข้อผิดพลาดในการค้นหา";
       }
     } catch (error) {
-      console.error('Error fetching petitions:', error);
+      console.error('Error searching petitions:', error);
+      searchError = "เกิดข้อผิดพลาดในการเชื่อมต่อกับเซิร์ฟเวอร์";
+    } finally {
+      isSearching = false;
     }
-  }
+  }, 500); // รอ 500ms หลังจากพิมพ์เสร็จแล้วค่อยค้นหา
 
   function getPaginationArray(totalPages) {
     const paginationArray = [];
@@ -157,14 +192,33 @@
     ติดตามการพิจารณาคำร้องขอจริยธรรมการวิจัยในมนุษย์
   </h1>
 
-  <div class="mb-4 flex">
-    <input 
-      type="text" 
-      placeholder="ค้นหาโดยเบอร์โทร..." 
-      bind:value={searchPhone} 
-      on:input={searchPetitions}
-      class="py-2 px-4 border border-gray-300 rounded mr-4 w-64"
-    />
+  <div class="mb-4">
+    <div class="form-control w-full max-w-xs">
+      <label class="label">
+        <span class="label-text">ค้นหาด้วยเบอร์โทรศัพท์</span>
+      </label>
+      <div class="relative">
+        <input 
+          type="text" 
+          placeholder="กรอกเบอร์โทรศัพท์ 10 หลัก" 
+          bind:value={searchPhone} 
+          on:input={searchPetitions}
+          class="input input-bordered w-full pr-10"
+          maxlength="10"
+          pattern="[0-9]*"
+        />
+        {#if isSearching}
+          <div class="absolute right-3 top-1/2 transform -translate-y-1/2">
+            <span class="loading loading-spinner loading-sm"></span>
+          </div>
+        {/if}
+      </div>
+      {#if searchError}
+        <label class="label">
+          <span class="label-text-alt text-error">{searchError}</span>
+        </label>
+      {/if}
+    </div>
   </div>
 
   <!-- Table for statusId: 1 and 4 -->
@@ -306,14 +360,14 @@
 
 <!-- Modal -->
 <dialog id="my_modal_1" class="modal">
-  <div class="modal-box">
-    <h3 class="text-lg font-bold">กรุณากรอกเบอร์โทรศัพท์ของคุณ</h3>
-    <div class="mt-4 relative">
+  <div class="modal-box p-6">
+    <h3 class="text-lg font-bold mb-4">กรุณากรอกเบอร์โทรศัพท์ของคุณ</h3>
+    <div class="mt-4 mb-6 relative">
       <input
         type="text"
         id="phone-input"
-        placeholder="เบอร์โทรศัพท์"
-        class="input"
+        placeholder="ยืนยันเบอร์โทรศัพท์ผู้วิจัย"
+        class="input w-full px-4 py-2"
         on:input={handleInputChange}
       />
       {#if isLoading}
@@ -323,16 +377,20 @@
       {/if}
     </div>
     {#if errorMessage}
-      <p class="text-red-500">{errorMessage}</p>
+      <p class="text-red-500 mb-4">{errorMessage}</p>
     {/if}
-    <div class="modal-action">
-      <button
-        class="btn btn-outline btn-info"
-        on:click={verifyAndGoToDirectorPage}>ยืนยัน</button
-      >
-      <form method="dialog" on:submit={closeModal}>
-        <button class="btn btn-outline btn-error">ยกเลิก</button>
-      </form>
+    <div class="modal-action flex justify-between items-center">
+      <div>
+        <button
+          class="btn btn-outline btn-info"
+          on:click={verifyAndGoToDirectorPage}>ยืนยัน</button
+        >
+      </div>
+      <div>
+        <form method="dialog" on:submit={closeModal}>
+          <button class="btn btn-outline btn-error">ยกเลิก</button>
+        </form>
+      </div>
     </div>
   </div>
 </dialog>
@@ -352,19 +410,38 @@
     border-radius: 0.5rem;
   }
 
-  .modal {
-    /* Add any modal-specific styles here */
+  .modal-box {
+    max-width: 32rem;
+    width: 90%;
+    background: white;
+    padding: 1.5rem;
+    border-radius: 0.5rem;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
   }
 
-  .relative {
-    position: relative;
+  .modal-action {
+    margin-top: 1.5rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 2rem;
   }
 
-  .loading {
-    position: absolute;
-    top: 50%;
-    transform: translateY(-50%);
+  .input {
+    width: 100%;
+    padding: 0.75rem 1rem;
+    border: 1px solid #e2e8f0;
+    border-radius: 0.375rem;
+    font-size: 1rem;
+    transition: border-color 0.2s;
   }
+
+  .input:focus {
+    outline: none;
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+  }
+
   .pagination {
     display: flex;
     justify-content: center;

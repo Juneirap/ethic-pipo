@@ -1172,13 +1172,16 @@
             class="evaluation-textarea"
             bind:value={petitions.note}
             placeholder="กรุณาระบุข้อเสนอแนะเพิ่มเติม"
+            disabled={petitions.statusId === 2 || petitions.statusId === 3}
           ></textarea>
         </div>
       </div>
-      <div class="form-actions">
-        <button type="submit" on:click={handleSubmit}>ผ่านการพิจารณา</button>
-        <button type="button"on:click={handleUpdate}>ไม่ผ่านการพิจารณา</button>
-      </div>
+      {#if petitions.statusId !== 2 && petitions.statusId !== 3}
+        <div class="form-actions">
+          <button type="submit" on:click={handleSubmit}>ผ่านการพิจารณา</button>
+          <button type="button" on:click={handleUpdate}>ไม่ผ่านการพิจารณา</button>
+        </div>
+      {/if}
     </div>
   </form>
 </div>

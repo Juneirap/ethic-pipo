@@ -618,8 +618,8 @@
       // Draw a line to close the header
       doc.line(20, yPosition - 17, 180, yPosition - 17); // Header closing line
 
-      documentTypes.forEach((docType) => {
-        doc.text(`${docType.id}. ${docType.description}`, 23, yPosition);
+      documentTypes.filter(doc => [1, 2, 4, 9, 10].includes(doc.id)).forEach((docType, index) => {
+        doc.text(`${index + 1}. ${docType.description}`, 23, yPosition);
         const fileStatus = uploadedFiles[docType.id]
           ? uploadedFiles[docType.id].name.length > 5
             ? uploadedFiles[docType.id].name.slice(0, 5) +
@@ -925,13 +925,11 @@
             </tr>
           </thead>
           <tbody>
-            {#each documentTypes as doc}
+            {#each documentTypes.filter(doc => [1, 2, 4, 9, 10].includes(doc.id)) as doc, index}
               <tr>
                 <td>
-                  {doc.id}. {doc.description}
-                  {#if doc.id === 1 || doc.id === 2 || doc.id === 4 || doc.id === 9 || doc.id === 10}
-                    <span class="asterisk">**</span>
-                  {/if}
+                  {index + 1}. {doc.description}
+                  <span class="asterisk">**</span>
                 </td>
                 <td>
                   <div class="upload-container">

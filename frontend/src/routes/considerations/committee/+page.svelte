@@ -4,8 +4,16 @@
   import { page } from "$app/stores";
 
   let petitions: string | any[] = [];
+  let ongoingPetitions: any[] = [];
+  let completedPetitions: any[] = [];
   let authToken: any;
   let errorMessage;
+  let searchQuery = "";
+  let searchResults = {
+    ongoing: [],
+    completed: []
+  };
+  let showSearchResults = false;
 
   // ดึงค่า authToken จาก store ของ SvelteKit
   $: authToken = $page.data.authToken;
@@ -14,6 +22,8 @@
   async function fetchPetitions() {
     if (!authToken) {
       petitions = [];
+      ongoingPetitions = [];
+      completedPetitions = [];
       errorMessage = "คุณไม่ได้รับอนุญาต";
       return;
     }
@@ -29,16 +39,52 @@
 
       if (response.ok) {
         const allPetitions = await response.json();
-        // กรองเฉพาะ petitions ที่มี currentLevelId เป็น 1
+        // กรองเฉพาะ petitions ที่มี currentLevelId เป็น 2
         petitions = allPetitions.filter((petition) => {
           return petition.currentLevelId === 2;
         });
+        
+        // แยกข้อมูลตาม statusId
+        ongoingPetitions = petitions.filter(petition => 
+          petition.statusId === 1 || petition.statusId === 4
+        );
+        completedPetitions = petitions.filter(petition => 
+          petition.statusId === 2 || petition.statusId === 3
+        );
       } else {
         errorMessage = "Failed to fetch petitions";
       }
     } catch (error) {
       errorMessage = "Error fetching petitions: " + error.message;
     }
+  }
+
+  // ฟังก์ชันค้นหาผู้วิจัย
+  function searchResearcher() {
+    if (!searchQuery.trim()) {
+      showSearchResults = false;
+      return;
+    }
+
+    const query = searchQuery.toLowerCase();
+    
+    // ค้นหาในคำร้องที่กำลังดำเนินการ
+    searchResults.ongoing = ongoingPetitions.filter(petition =>
+      petition.researcher.toLowerCase().includes(query)
+    );
+
+    // ค้นหาในคำร้องที่เสร็จสิ้น
+    searchResults.completed = completedPetitions.filter(petition =>
+      petition.researcher.toLowerCase().includes(query)
+    );
+
+    showSearchResults = true;
+  }
+
+  // รีเซ็ตการค้นหา
+  function resetSearch() {
+    searchQuery = "";
+    showSearchResults = false;
   }
 
   // ฟังก์ชันเปลี่ยนหน้า
@@ -62,7 +108,188 @@
       รายการคำร้องขอจริยธรรมการวิจัยในมนุษย์ (ขั้นกรรมการ)
     </h1>
 
+    <!-- Search Section -->
+    <div class="search-container mb-6">
+      <div class="flex gap-2">
+        <input
+          type="text"
+          bind:value={searchQuery}
+          placeholder="ค้นหาชื่อผู้วิจัย"
+          class="input input-bordered w-full max-w-xs"
+          on:input={searchResearcher}
+        />
+        {#if searchQuery}
+          <button class="btn btn-outline" on:click={resetSearch}>ล้างการค้นหา</button>
+        {/if}
+      </div>
+
+      {#if showSearchResults}
+        <div class="search-results mt-4">
+          <h3 class="text-lg font-semibold mb-2">ผลการค้นหา</h3>
+          
+          {#if searchResults.ongoing.length > 0}
+            <div class="mb-4">
+              <h4 class="text-md font-medium text-blue-600">พบในคำร้องที่กำลังดำเนินการ ({searchResults.ongoing.length} รายการ)</h4>
+              <div class="overflow-x-auto">
+                <table class="min-w-full">
+                  <thead>
+                    <tr class="bg-gray-50">
+                      <th class="px-4 py-2 text-left">ชื่อ-นามสกุล</th>
+                      <th class="px-4 py-2 text-left">ชื่อเรื่องภาษาไทย</th>
+                      <th class="px-4 py-2 text-center">ดำเนินการ</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {#each searchResults.ongoing as result}
+                      <tr class="border-b hover:bg-gray-50">
+                        <td class="px-4 py-2">{result.researcher}</td>
+                        <td class="px-4 py-2">
+                          {result.title_th.length > 100
+                            ? result.title_th.substring(0, 100) + "..."
+                            : result.title_th}
+                        </td>
+                        <td class="px-4 py-2 text-center">
+                          <button 
+                            class="btn btn-outline btn-primary btn-sm"
+                            on:click={() => goToDirectorPage(result.id)}
+                          >
+                            ตรวจสอบ
+                          </button>
+                        </td>
+                      </tr>
+                    {/each}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          {/if}
+
+          {#if searchResults.completed.length > 0}
+            <div class="mb-4">
+              <h4 class="text-md font-medium text-green-600">พบในคำร้องที่ดำเนินการเสร็จสิ้น ({searchResults.completed.length} รายการ)</h4>
+              <div class="overflow-x-auto">
+                <table class="min-w-full">
+                  <thead>
+                    <tr class="bg-gray-50">
+                      <th class="px-4 py-2 text-left">ชื่อ-นามสกุล</th>
+                      <th class="px-4 py-2 text-left">ชื่อเรื่องภาษาไทย</th>
+                      <th class="px-4 py-2 text-center">ดำเนินการ</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {#each searchResults.completed as result}
+                      <tr class="border-b hover:bg-gray-50">
+                        <td class="px-4 py-2">{result.researcher}</td>
+                        <td class="px-4 py-2">
+                          {result.title_th.length > 100
+                            ? result.title_th.substring(0, 100) + "..."
+                            : result.title_th}
+                        </td>
+                        <td class="px-4 py-2 text-center">
+                          <button 
+                            class="btn btn-outline btn-primary btn-sm"
+                            on:click={() => goToDirectorPage(result.id)}
+                          >
+                            ตรวจสอบ
+                          </button>
+                        </td>
+                      </tr>
+                    {/each}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          {/if}
+
+          {#if searchResults.ongoing.length === 0 && searchResults.completed.length === 0}
+            <p class="text-gray-500">ไม่พบข้อมูลที่ค้นหา</p>
+          {/if}
+        </div>
+      {/if}
+    </div>
+
     <div class="table-container">
+      <h2 class="text-xl font-bold mt-8 mb-4">ข้อมูลคำร้อง (กำลังดำเนินการ)</h2>
+      <table class="min-w-full bg-white">
+        <thead>
+          <tr
+            class="bg-gray-200 text-gray-600 uppercase text-sm leading-normal"
+          >
+            <th class="py-3 px-6 text-left">ผู้วิจัย</th>
+            <th class="py-3 px-6 text-left">เลขที่เอกสาร</th>
+            <th class="py-3 px-6 text-left">ชื่อเรื่องภาษาไทย</th>
+            <th class="py-3 px-6 text-left">ขั้นตอนปัจจุบัน</th>
+            <th class="py-3 px-6 text-left">สถานะเอกสาร</th>
+            <th class="py-3 px-6 text-left">วันที่ส่งเอกสาร</th>
+            <th class="py-3 px-6 text-center">ข้อมูลคำร้อง</th>
+          </tr>
+        </thead>
+        <tbody class="text-gray-600 text-sm font-light">
+          {#if ongoingPetitions.length === 0}
+            <tr>
+              <td colspan="7" class="py-8 text-center text-gray-500"
+                >ไม่พบข้อมูลคำร้อง</td
+              >
+            </tr>
+          {:else}
+            {#each ongoingPetitions as petition, index}
+              <tr class="border-b border-gray-200 hover:bg-gray-100">
+                <td class="py-3 px-6 text-left whitespace-nowrap">
+                  {petition.researcher}
+                </td>
+                <td class="py-3 px-6 text-left">
+                  {petition.correspondenceNo}
+                </td>
+                <td class="py-3 px-6 text-left">
+                  {petition.title_th.length > 11
+                    ? petition.title_th.substring(0, 11) + "..."
+                    : petition.title_th}
+                </td>
+                <td class="py-3 px-6 text-left">
+                  {petition.currentLevel}
+                </td>
+                <td class="py-3 px-6 text-left">
+                  {#if petition.statusId === 1}
+                    <div class="badge badge-info badge-outline">
+                      {petition.statusDescription}
+                    </div>
+                  {:else if petition.statusId === 2}
+                    <div class="badge badge-success badge-outline">
+                      {petition.statusDescription}
+                    </div>
+                  {:else if petition.statusId === 3}
+                    <div class="badge badge-error badge-outline">
+                      {petition.statusDescription}
+                    </div>
+                  {:else if petition.statusId === 4}
+                    <div class="badge badge-warning badge-outline">
+                      {petition.statusDescription}
+                    </div>
+                  {:else}
+                    <div class="badge badge-danger badge-outline">
+                      {petition.statusDescription}
+                    </div>
+                  {/if}
+                </td>
+                <td class="py-3 px-6 text-left">
+                  {petition.created_at}
+                </td>
+                <td class="py-3 px-6 text-center">
+                  <button
+                    class="btn btn-outline btn-primary"
+                    on:click={() => goToDirectorPage(petition.id)}
+                    >ตรวจสอบ</button
+                  >
+                </td>
+              </tr>
+            {/each}
+          {/if}
+        </tbody>
+      </table>
+    </div>
+
+    <div class="table-container">
+      <h2 class="text-xl font-bold mt-8 mb-4">ข้อมูลคำร้อง (ดำเนินการเสร็จสิ้น)</h2>
       <table class="min-w-full bg-white">
         <thead>
           <tr
@@ -78,14 +305,14 @@
           </tr>
         </thead>
         <tbody class="text-gray-600 text-sm font-light">
-          {#if petitions.length === 0}
+          {#if completedPetitions.length === 0}
             <tr>
               <td colspan="7" class="py-8 text-center text-gray-500"
                 >ไม่พบข้อมูลคำร้อง</td
               >
             </tr>
           {:else}
-            {#each petitions as petition, index}
+            {#each completedPetitions as petition, index}
               <tr class="border-b border-gray-200 hover:bg-gray-100">
                 <td class="py-3 px-6 text-left whitespace-nowrap">
                   {petition.researcher}
@@ -178,6 +405,24 @@
 
   .research-table tr:hover {
     background-color: #f1f5f9;
+  }
+
+  .search-container {
+    background-color: white;
+    padding: 1rem;
+    border-radius: 0.5rem;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  }
+
+  .search-results {
+    background-color: #f8fafc;
+    padding: 1rem;
+    border-radius: 0.5rem;
+    border: 1px solid #e2e8f0;
+  }
+
+  .search-results li:last-child {
+    border-bottom: none;
   }
 
   @media (max-width: 768px) {

@@ -44,6 +44,8 @@
     },
   };
 
+  let isCompleted = false;
+
   interface PetitionFile {
     id: number;
     name: string;
@@ -246,6 +248,8 @@
 
   // เรียกใช้ฟังก์ชันเมื่อ component ถูกโหลด
   onMount(() => {
+    const isCompletedParam = $page.url.searchParams.get("isCompleted");
+    isCompleted = isCompletedParam === "true";
     getPetitionById();
     getPetitionFiles();
   });
@@ -363,6 +367,43 @@
           statusId: 4,
           researcherId: petitions.researcherId,
           currentLevelId: 1,
+          staffId: petitions.staffId,
+          note: petitions.note,
+        }),
+      });
+
+      if (response.ok) {
+        alert("บันทึกการพิจารณาเรียบร้อยแล้ว");
+        window.location.href = "/considerations/subcommittee";
+      } else {
+        alert("เกิดข้อผิดพลาดในการบันทึก");
+      }
+    } catch (error) {
+      console.error("Error:", error);
+      alert("เกิดข้อผิดพลาดในการบันทึก");
+    }
+  }
+
+  async function handleExemption(event: Event) {
+    event.preventDefault();
+    const id = $page.url.searchParams.get("id");
+    if (!id) return;
+
+    try {
+      const response = await fetch(`http://localhost:8000/petitions?id=${id}`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          objectiveId: petitions.objectiveId,
+          objectiveOther: petitions.objectiveOther,
+          grantId: petitions.grantId,
+          grantOther: petitions.grantOther,
+          typeId: 3,
+          statusId: 2,
+          researcherId: petitions.researcherId,
+          currentLevelId: 2,
           staffId: petitions.staffId,
           note: petitions.note,
         }),
@@ -702,17 +743,19 @@
                       </span>
                     </div>
                     <div class="file-actions">
-                      <input
-                        type="file"
-                        style="display: none"
-                        on:change={(e: Event) => {
-                          const target = e.target as HTMLInputElement;
-                          if (target && target.files && target.files[0]) {
-                            handleFileEdit(file, target.files[0]);
-                          }
-                        }}
-                        id="edit-file-{file.id}"
-                      />
+                      {#if !isCompleted}
+                        <input
+                          type="file"
+                          style="display: none"
+                          on:change={(e: Event) => {
+                            const target = e.target as HTMLInputElement;
+                            if (target && target.files && target.files[0]) {
+                              handleFileEdit(file, target.files[0]);
+                            }
+                          }}
+                          id="edit-file-{file.id}"
+                        />
+                      {/if}
                     </div>
                   </div>
                 {/each}
@@ -720,12 +763,14 @@
                 <div class="no-file">ไม่มีข้อมูลเอกสาร</div>
               {/if}
               <div class="upload-section">
-                <input
-                  type="file"
-                  style="display: none"
-                  on:change={(e) => handleFileUpload(e, 1)}
-                  id="upload-file-1"
-                />
+                {#if !isCompleted}
+                  <input
+                    type="file"
+                    style="display: none"
+                    on:change={(e) => handleFileUpload(e, 1)}
+                    id="upload-file-1"
+                  />
+                {/if}
               </div>
             </td>
           </tr>
@@ -749,17 +794,19 @@
                       </span>
                     </div>
                     <div class="file-actions">
-                      <input
-                        type="file"
-                        style="display: none"
-                        on:change={(e: Event) => {
-                          const target = e.target as HTMLInputElement;
-                          if (target && target.files && target.files[0]) {
-                            handleFileEdit(file, target.files[0]);
-                          }
-                        }}
-                        id="edit-file-{file.id}"
-                      />
+                      {#if !isCompleted}
+                        <input
+                          type="file"
+                          style="display: none"
+                          on:change={(e: Event) => {
+                            const target = e.target as HTMLInputElement;
+                            if (target && target.files && target.files[0]) {
+                              handleFileEdit(file, target.files[0]);
+                            }
+                          }}
+                          id="edit-file-{file.id}"
+                        />
+                      {/if}
                     </div>
                   </div>
                 {/each}
@@ -767,12 +814,14 @@
                 <div class="no-file">ไม่มีข้อมูลเอกสาร</div>
               {/if}
               <div class="upload-section">
-                <input
-                  type="file"
-                  style="display: none"
-                  on:change={(e) => handleFileUpload(e, 2)}
-                  id="upload-file-2"
-                />
+                {#if !isCompleted}
+                  <input
+                    type="file"
+                    style="display: none"
+                    on:change={(e) => handleFileUpload(e, 2)}
+                    id="upload-file-2"
+                  />
+                {/if}
               </div>
             </td>
           </tr>
@@ -796,17 +845,19 @@
                       </span>
                     </div>
                     <div class="file-actions">
-                      <input
-                        type="file"
-                        style="display: none"
-                        on:change={(e: Event) => {
-                          const target = e.target as HTMLInputElement;
-                          if (target && target.files && target.files[0]) {
-                            handleFileEdit(file, target.files[0]);
-                          }
-                        }}
-                        id="edit-file-{file.id}"
-                      />
+                      {#if !isCompleted}
+                        <input
+                          type="file"
+                          style="display: none"
+                          on:change={(e: Event) => {
+                            const target = e.target as HTMLInputElement;
+                            if (target && target.files && target.files[0]) {
+                              handleFileEdit(file, target.files[0]);
+                            }
+                          }}
+                          id="edit-file-{file.id}"
+                        />
+                      {/if}
                     </div>
                   </div>
                 {/each}
@@ -814,12 +865,14 @@
                 <div class="no-file">ไม่มีข้อมูลเอกสาร</div>
               {/if}
               <div class="upload-section">
-                <input
-                  type="file"
-                  style="display: none"
-                  on:change={(e) => handleFileUpload(e, 4)}
-                  id="upload-file-4"
-                />
+                {#if !isCompleted}
+                  <input
+                    type="file"
+                    style="display: none"
+                    on:change={(e) => handleFileUpload(e, 4)}
+                    id="upload-file-4"
+                  />
+                {/if}
               </div>
             </td>
           </tr>
@@ -843,17 +896,19 @@
                       </span>
                     </div>
                     <div class="file-actions">
-                      <input
-                        type="file"
-                        style="display: none"
-                        on:change={(e: Event) => {
-                          const target = e.target as HTMLInputElement;
-                          if (target && target.files && target.files[0]) {
-                            handleFileEdit(file, target.files[0]);
-                          }
-                        }}
-                        id="edit-file-{file.id}"
-                      />
+                      {#if !isCompleted}
+                        <input
+                          type="file"
+                          style="display: none"
+                          on:change={(e: Event) => {
+                            const target = e.target as HTMLInputElement;
+                            if (target && target.files && target.files[0]) {
+                              handleFileEdit(file, target.files[0]);
+                            }
+                          }}
+                          id="edit-file-{file.id}"
+                        />
+                      {/if}
                     </div>
                   </div>
                 {/each}
@@ -861,12 +916,14 @@
                 <div class="no-file">ไม่มีข้อมูลเอกสาร</div>
               {/if}
               <div class="upload-section">
-                <input
-                  type="file"
-                  style="display: none"
-                  on:change={(e) => handleFileUpload(e, 9)}
-                  id="upload-file-9"
-                />
+                {#if !isCompleted}
+                  <input
+                    type="file"
+                    style="display: none"
+                    on:change={(e) => handleFileUpload(e, 9)}
+                    id="upload-file-9"
+                  />
+                {/if}
               </div>
             </td>
           </tr>
@@ -890,17 +947,19 @@
                       </span>
                     </div>
                     <div class="file-actions">
-                      <input
-                        type="file"
-                        style="display: none"
-                        on:change={(e: Event) => {
-                          const target = e.target as HTMLInputElement;
-                          if (target && target.files && target.files[0]) {
-                            handleFileEdit(file, target.files[0]);
-                          }
-                        }}
-                        id="edit-file-{file.id}"
-                      />
+                      {#if !isCompleted}
+                        <input
+                          type="file"
+                          style="display: none"
+                          on:change={(e: Event) => {
+                            const target = e.target as HTMLInputElement;
+                            if (target && target.files && target.files[0]) {
+                              handleFileEdit(file, target.files[0]);
+                            }
+                          }}
+                          id="edit-file-{file.id}"
+                        />
+                      {/if}
                     </div>
                   </div>
                 {/each}
@@ -908,12 +967,14 @@
                 <div class="no-file">ไม่มีข้อมูลเอกสาร</div>
               {/if}
               <div class="upload-section">
-                <input
-                  type="file"
-                  style="display: none"
-                  on:change={(e) => handleFileUpload(e, 10)}
-                  id="upload-file-10"
-                />
+                {#if !isCompleted}
+                  <input
+                    type="file"
+                    style="display: none"
+                    on:change={(e) => handleFileUpload(e, 10)}
+                    id="upload-file-10"
+                  />
+                {/if}
               </div>
             </td>
           </tr>
@@ -930,14 +991,20 @@
             class="evaluation-textarea"
             bind:value={petitions.note}
             placeholder="กรุณาระบุข้อเสนอแนะเพิ่มเติม"
+            disabled={isCompleted}
           ></textarea>
         </div>
       </div>
-      <div class="form-actions">
-        <button type="submit" on:click={handleSubmit}>ผ่านการพิจารณา</button>
-        <button type="button" on:click={handleUpdate}>ไม่ผ่านการพิจารณา</button>
-        <button type="button" on:click={handleEdit}>ส่งเอกสารเพิ่มเติม</button>
-      </div>
+      {#if !isCompleted}
+        <div class="form-actions">
+          <button type="button" on:click={handleExemption}
+            >เข้าข่ายข้อยกเว้น</button
+          >
+          <button type="button" on:click={handleSubmit}>ผ่านการพิจารณา (พิจารณาต่อในขั้นกรรมการ)</button>
+          <button type="button" on:click={handleEdit}>ส่งเอกสารเพิ่มเติม</button>
+          <button type="button" on:click={handleUpdate}>ไม่ผ่านการพิจารณา</button>
+        </div>
+      {/if}
     </div>
   </form>
 </div>
@@ -1106,7 +1173,7 @@
   .form-actions button {
     padding: 10px 20px;
     font-size: 16px;
-    background-color: #4caf50;
+    background-color: #2196f3;
     color: white;
     border: none;
     border-radius: 5px;
@@ -1114,15 +1181,15 @@
   }
 
   .form-actions button:nth-child(2) {
-    background-color: red;
+    background-color: green;
   }
 
   .form-actions button:nth-child(3) {
-    background-color: #7e7e7e;
+    background-color: orange;
   }
 
   .form-actions button:nth-child(4) {
-    background-color: #28a745;
+    background-color: #ff0000;
   }
 
   .form-actions button:hover {
