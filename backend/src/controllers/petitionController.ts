@@ -324,7 +324,7 @@ export const searchPetitionsByPhoneNumber = async (c: any) => {
       .where(sql`${researcher.telNo} = ${phoneNumber}`);
 
     if (!petitionsByPhoneNumber.length) {
-      return c.json({ message: "No petitions found for this phone number." }, 404);
+      return c.json({ message: "ไม่พบหมายเลขโทรศัพท์" }, 404);
     }
 
     return c.json(petitionsByPhoneNumber, 200);
@@ -365,14 +365,14 @@ export const getPetitionFilesByPetitionId = async (c: any) => {
       .where(eq(petitionFiles.petitionId, parseInt(petitionId)));
 
     if (!files.length) {
-      return c.json({ message: "No files found for this petition." }, 404);
+      return c.json({ message: "ไม่พบเอกสาร" }, 404);
     }
 
     return c.json({ files }, 200);
   } catch (error) {
     console.error(error);
     return c.json(
-      { error: "Failed to retrieve petition files.", details: (error as any).message },
+      { error: "ไม่สามารถเรียกไฟล์ได้", details: (error as any).message },
       500
     );
   }

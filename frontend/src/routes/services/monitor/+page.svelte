@@ -13,12 +13,22 @@
   const itemsPerPage = 10;
 
   // Computed properties for pagination
-  $: paginatedPetitionsStatus1and4 = filteredPetitionsStatus1and4.slice((currentPageStatus1and4 - 1) * itemsPerPage, currentPageStatus1and4 * itemsPerPage);
-  $: paginatedPetitionsStatus2and3 = filteredPetitionsStatus2and3.slice((currentPageStatus2and3 - 1) * itemsPerPage, currentPageStatus2and3 * itemsPerPage);
+  $: paginatedPetitionsStatus1and4 = filteredPetitionsStatus1and4.slice(
+    (currentPageStatus1and4 - 1) * itemsPerPage,
+    currentPageStatus1and4 * itemsPerPage
+  );
+  $: paginatedPetitionsStatus2and3 = filteredPetitionsStatus2and3.slice(
+    (currentPageStatus2and3 - 1) * itemsPerPage,
+    currentPageStatus2and3 * itemsPerPage
+  );
 
   // Total pages
-  $: totalPagesStatus1and4 = Math.ceil(filteredPetitionsStatus1and4.length / itemsPerPage);
-  $: totalPagesStatus2and3 = Math.ceil(filteredPetitionsStatus2and3.length / itemsPerPage);
+  $: totalPagesStatus1and4 = Math.ceil(
+    filteredPetitionsStatus1and4.length / itemsPerPage
+  );
+  $: totalPagesStatus2and3 = Math.ceil(
+    filteredPetitionsStatus2and3.length / itemsPerPage
+  );
 
   function nextPageStatus1and4() {
     if (currentPageStatus1and4 < totalPagesStatus1and4) {
@@ -107,7 +117,7 @@
     modal?.close(); // Close the modal
   }
 
-  let searchPhone = '';
+  let searchPhone = "";
   let isSearching = false;
   let searchError = null;
 
@@ -143,10 +153,12 @@
         return;
       }
 
-      const response = await fetch(`http://localhost:8000/petitions/search?telNo=${searchPhone.trim()}`);
+      const response = await fetch(
+        `http://localhost:8000/petitions/search?telNo=${searchPhone.trim()}`
+      );
       if (response.ok) {
         const searchResults = await response.json();
-        
+
         // แยกข้อมูลตาม status
         filteredPetitionsStatus1and4 = searchResults.filter(
           (petition) => petition.statusId === 1 || petition.statusId === 4
@@ -167,7 +179,7 @@
         searchError = errorData.message || "เกิดข้อผิดพลาดในการค้นหา";
       }
     } catch (error) {
-      console.error('Error searching petitions:', error);
+      console.error("Error searching petitions:", error);
       searchError = "เกิดข้อผิดพลาดในการเชื่อมต่อกับเซิร์ฟเวอร์";
     } finally {
       isSearching = false;
@@ -194,14 +206,14 @@
 
   <div class="mb-4">
     <div class="form-control w-full max-w-xs">
-      <label class="label">
+      <!-- <label class="label">
         <span class="label-text">ค้นหาด้วยเบอร์โทรศัพท์</span>
-      </label>
+      </label> -->
       <div class="relative">
-        <input 
-          type="text" 
-          placeholder="กรอกเบอร์โทรศัพท์ 10 หลัก" 
-          bind:value={searchPhone} 
+        <input
+          type="text"
+          placeholder="ค้นหาด้วยหมายเลขโทรศัพท์"
+          bind:value={searchPhone}
           on:input={searchPetitions}
           class="input input-bordered w-full pr-10"
           maxlength="10"
@@ -239,15 +251,21 @@
       <tbody class="text-gray-600 text-sm font-light">
         {#if paginatedPetitionsStatus1and4.length === 0}
           <tr>
-            <td colspan="7" class="py-8 text-center text-gray-500">ไม่พบข้อมูลคำร้อง</td>
+            <td colspan="7" class="py-8 text-center text-gray-500"
+              >ไม่พบข้อมูลคำร้อง</td
+            >
           </tr>
         {:else}
           {#each paginatedPetitionsStatus1and4 as petition}
             <tr class="border-b border-gray-200 hover:bg-gray-100">
-              <td class="py-3 px-6 text-left whitespace-nowrap">{petition.researcher}</td>
+              <td class="py-3 px-6 text-left whitespace-nowrap"
+                >{petition.researcher}</td
+              >
               <td class="py-3 px-6 text-left">{petition.correspondenceNo}</td>
               <td class="py-3 px-6 text-left">
-                {petition.title_th.length > 11 ? petition.title_th.substring(0, 11) + "..." : petition.title_th}
+                {petition.title_th.length > 11
+                  ? petition.title_th.substring(0, 11) + "..."
+                  : petition.title_th}
               </td>
               <td class="py-3 px-6 text-left">{petition.currentLevel}</td>
               <td class="py-3 px-6 text-left">
@@ -280,11 +298,21 @@
 
     <!-- Pagination controls -->
     <div class="pagination">
-      <button on:click={prevPageStatus1and4} disabled={currentPageStatus1and4 === 1}>ก่อนหน้า</button>
+      <button
+        on:click={prevPageStatus1and4}
+        disabled={currentPageStatus1and4 === 1}>ก่อนหน้า</button
+      >
       {#each getPaginationArray(totalPagesStatus1and4) as page}
-        <button on:click={() => currentPageStatus1and4 = page} class:active={currentPageStatus1and4 === page}>{page}</button>
+        <button
+          on:click={() => (currentPageStatus1and4 = page)}
+          class:active={currentPageStatus1and4 === page}>{page}</button
+        >
       {/each}
-      <button on:click={nextPageStatus1and4} disabled={currentPageStatus1and4 === totalPagesStatus1and4}>ถัดไป</button>
+      <button
+        on:click={nextPageStatus1and4}
+        disabled={currentPageStatus1and4 === totalPagesStatus1and4}
+        >ถัดไป</button
+      >
     </div>
   </div>
 
@@ -308,15 +336,21 @@
       <tbody class="text-gray-600 text-sm font-light">
         {#if paginatedPetitionsStatus2and3.length === 0}
           <tr>
-            <td colspan="7" class="py-8 text-center text-gray-500">ไม่พบข้อมูลคำร้อง</td>
+            <td colspan="7" class="py-8 text-center text-gray-500"
+              >ไม่พบข้อมูลคำร้อง</td
+            >
           </tr>
         {:else}
           {#each paginatedPetitionsStatus2and3 as petition}
             <tr class="border-b border-gray-200 hover:bg-gray-100">
-              <td class="py-3 px-6 text-left whitespace-nowrap">{petition.researcher}</td>
+              <td class="py-3 px-6 text-left whitespace-nowrap"
+                >{petition.researcher}</td
+              >
               <td class="py-3 px-6 text-left">{petition.correspondenceNo}</td>
               <td class="py-3 px-6 text-left">
-                {petition.title_th.length > 11 ? petition.title_th.substring(0, 11) + "..." : petition.title_th}
+                {petition.title_th.length > 11
+                  ? petition.title_th.substring(0, 11) + "..."
+                  : petition.title_th}
               </td>
               <td class="py-3 px-6 text-left">{petition.currentLevel}</td>
               <td class="py-3 px-6 text-left">
@@ -349,11 +383,21 @@
 
     <!-- Pagination controls -->
     <div class="pagination">
-      <button on:click={prevPageStatus2and3} disabled={currentPageStatus2and3 === 1}>ก่อนหน้า</button>
+      <button
+        on:click={prevPageStatus2and3}
+        disabled={currentPageStatus2and3 === 1}>ก่อนหน้า</button
+      >
       {#each getPaginationArray(totalPagesStatus2and3) as page}
-        <button on:click={() => currentPageStatus2and3 = page} class:active={currentPageStatus2and3 === page}>{page}</button>
+        <button
+          on:click={() => (currentPageStatus2and3 = page)}
+          class:active={currentPageStatus2and3 === page}>{page}</button
+        >
       {/each}
-      <button on:click={nextPageStatus2and3} disabled={currentPageStatus2and3 === totalPagesStatus2and3}>ถัดไป</button>
+      <button
+        on:click={nextPageStatus2and3}
+        disabled={currentPageStatus2and3 === totalPagesStatus2and3}
+        >ถัดไป</button
+      >
     </div>
   </div>
 </div>
@@ -396,6 +440,10 @@
 </dialog>
 
 <style>
+  .btn-outline:hover {
+    color: white;
+  }
+
   .container {
     max-width: 1200px;
     margin: 0 auto;
