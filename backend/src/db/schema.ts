@@ -19,7 +19,7 @@ export const staff = mysqlTable("staff", {
   email: varchar("email", { length: 255 }).notNull().unique(),
   name: varchar("name", { length: 255 }).notNull(),
   surname: text("surname").notNull(),
-  telNo: text("tel_no").notNull(),
+  telNo: text("tel_no").notNull().unique(),
   roleId: bigint("role_id", { mode: "number", unsigned: true })
     .notNull()
     .references(() => roles.id),

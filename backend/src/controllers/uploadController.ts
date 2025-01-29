@@ -30,6 +30,10 @@ export const uploadFile = async (c: Context) => {
   try {
     await ensureUploadDir(); // ตรวจสอบและสร้างโฟลเดอร์ uploads
 
+    // บันทึกข้อมูลไฟล์ในฐานข้อมูล
+    const petitionId = parseInt(c.req.param("petitionId"));
+    const documentTypeId = parseInt(c.req.param("documentTypeId"));
+
     // อ่านข้อมูลไฟล์ที่อัปโหลด
     const body = await c.req.parseBody();
     const uploadedFile = body?.file as unknown as FileData;
@@ -45,14 +49,13 @@ export const uploadFile = async (c: Context) => {
     const fileContent = Buffer.from(arrayBuffer);
 
     // สร้าง MD5 Hash
-    const md5Hash = crypto.createHash("md5").update(fileContent).digest("hex");
+    const md5Hash = crypto
+      .createHash("md5")
+      .update(petitionId + "." + uploadedFile.name)
+      .digest("hex");
 
     // บันทึกไฟล์ลงในโฟลเดอร์
     await fs.writeFile(filePath, fileContent);
-
-    // บันทึกข้อมูลไฟล์ในฐานข้อมูล
-    const petitionId = parseInt(c.req.param("petitionId"));
-    const documentTypeId = parseInt(c.req.param("documentTypeId"));
 
     await db.insert(petitionFiles).values({
       name: uploadedFile.name,
@@ -62,10 +65,16 @@ export const uploadFile = async (c: Context) => {
       documentTypeId,
     });
 
-    return c.json({ message: "File uploaded successfully!", filePath, md5Hash }, 201);
+    return c.json(
+      { message: "File uploaded successfully!", filePath, md5Hash },
+      201
+    );
   } catch (error) {
     console.error(error);
-    return c.json({ error: "Failed to upload file.", details: (error as Error).message }, 500);
+    return c.json(
+      { error: "Failed to upload file.", details: (error as Error).message },
+      500
+    );
   }
 };
 
@@ -78,8 +87,8 @@ export const getFile = async (c: Context) => {
 
     // Decode the filename to handle special characters and spaces
     const decodedFilename = decodeURIComponent(filename);
-    const sanitizedFilename = decodedFilename.replace(/[<>:"/\\|?*]/g, '_');
-    
+    const sanitizedFilename = decodedFilename.replace(/[<>:"/\\|?*]/g, "_");
+
     const filePath = path.join(UPLOAD_DIR, sanitizedFilename);
 
     // Check if the file exists
@@ -91,7 +100,7 @@ export const getFile = async (c: Context) => {
 
     // Read file content as a Buffer
     const fileContent = await fs.readFile(filePath);
-    
+
     // Detect file type for Content-Type
     const ext = path.extname(sanitizedFilename).toLowerCase();
     let contentType = "application/octet-stream"; // Default for generic binary files
@@ -118,14 +127,14 @@ export const getFile = async (c: Context) => {
         contentType = "text/plain; charset=UTF-8";
         break;
       case ".xlsx":
-        contentType = 
+        contentType =
           "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";
         break;
       case ".xls":
         contentType = "application/vnd.ms-excel";
         break;
       case ".pptx":
-        contentType = 
+        contentType =
           "application/vnd.openxmlformats-officedocument.presentationml.presentation";
         break;
       case ".ppt":
@@ -136,8 +145,8 @@ export const getFile = async (c: Context) => {
     // Encode the filename for Content-Disposition header
     const encodedFilename = encodeURIComponent(decodedFilename)
       .replace(/['()]/g, escape) // Handle special characters
-      .replace(/\*/g, '%2A')
-      .replace(/%20/g, ' ');
+      .replace(/\*/g, "%2A")
+      .replace(/%20/g, " ");
 
     // Create a Blob from the buffer and return it as a response
     const blob = new Blob([fileContent], { type: contentType });
@@ -147,15 +156,18 @@ export const getFile = async (c: Context) => {
         "Content-Disposition": `inline; filename*=UTF-8''${encodedFilename}`,
         "Access-Control-Allow-Origin": "*",
         "Cache-Control": "no-cache",
-        "X-Content-Type-Options": "nosniff"
+        "X-Content-Type-Options": "nosniff",
       },
     });
   } catch (error) {
     console.error(error);
-    return c.json({ 
-      error: "Failed to get file.", 
-      details: (error as Error).message 
-    }, 500);
+    return c.json(
+      {
+        error: "Failed to get file.",
+        details: (error as Error).message,
+      },
+      500
+    );
   }
 };
 
@@ -203,10 +215,13 @@ export const editFile = async (c: Context) => {
       .from(petitionFiles)
       .where(eq(petitionFiles.id, fileId));
 
-    return c.json({ 
-      message: "File edited successfully!",
-      file: updatedFile
-    }, 200);
+    return c.json(
+      {
+        message: "File edited successfully!",
+        file: updatedFile,
+      },
+      200
+    );
   } catch (error) {
     console.error(error);
     return c.json(
@@ -223,10 +238,13 @@ export const checkFile = async (c: Context) => {
     const filename = c.req.param("filename");
 
     if (!petitionId || !documentTypeId || !filename) {
-      return c.json({ 
-        error: "Missing required parameters", 
-        message: "กรุณาระบุข้อมูลให้ครบถ้วน" 
-      }, 400);
+      return c.json(
+        {
+          error: "Missing required parameters",
+          message: "กรุณาระบุข้อมูลให้ครบถ้วน",
+        },
+        400
+      );
     }
 
     // ค้นหาไฟล์ในฐานข้อมูล
@@ -234,27 +252,36 @@ export const checkFile = async (c: Context) => {
       .select()
       .from(petitionFiles)
       .where(
-        eq(petitionFiles.petitionId, petitionId) && 
-        eq(petitionFiles.documentTypeId, documentTypeId) && 
-        eq(petitionFiles.name, filename)
+        eq(petitionFiles.petitionId, petitionId) &&
+          eq(petitionFiles.documentTypeId, documentTypeId) &&
+          eq(petitionFiles.name, filename)
       );
 
     if (existingFiles.length > 0) {
-      return c.json({ 
-        error: "Duplicate file", 
-        message: `ไฟล์ ${filename} สำหรับเอกสารประเภทนี้มีอยู่แล้ว` 
-      }, 409); // 409 Conflict
+      return c.json(
+        {
+          error: "Duplicate file",
+          message: `ไฟล์ ${filename} สำหรับเอกสารประเภทนี้มีอยู่แล้ว`,
+        },
+        409
+      ); // 409 Conflict
     }
 
-    return c.json({ 
-      message: "File can be uploaded",
-      exists: false 
-    }, 200);
+    return c.json(
+      {
+        message: "File can be uploaded",
+        exists: false,
+      },
+      200
+    );
   } catch (error) {
     console.error("Error checking file:", error);
-    return c.json({ 
-      error: "Server error", 
-      message: "เกิดข้อผิดพลาดในการตรวจสอบไฟล์" 
-    }, 500);
+    return c.json(
+      {
+        error: "Server error",
+        message: "เกิดข้อผิดพลาดในการตรวจสอบไฟล์",
+      },
+      500
+    );
   }
 };
