@@ -85,21 +85,16 @@ export const uploadFile = async (c: Context) => {
 
 export const getFile = async (c: Context) => {
   try {
-    const filename = c.req.param("filename"); // รับชื่อไฟล์จากพารามิเตอร์ URL
-    if (!filename) {
-      return c.json({ error: "File name is required" }, 400);
+    const md5 = c.req.param("md5"); // รับค่า MD5 จาก URL
+    if (!md5) {
+      return c.json({ error: "MD5 hash is required" }, 400);
     }
 
-    // ค้นหา MD5 hash ของไฟล์จากฐานข้อมูล โดยใช้ชื่อไฟล์และนามสกุล
+    // ค้นหาไฟล์จากฐานข้อมูลโดยใช้ MD5
     const fileRecord = await db
       .select()
       .from(petitionFiles)
-      .where(
-        and(
-          eq(petitionFiles.name, path.basename(filename, path.extname(filename))),
-          eq(petitionFiles.extension, path.extname(filename))
-        )
-      )
+      .where(eq(petitionFiles.md5, md5))
       .limit(1);
 
     if (!fileRecord.length) {
@@ -107,9 +102,9 @@ export const getFile = async (c: Context) => {
     }
 
     const fileData = fileRecord[0]; // ข้อมูลไฟล์จากฐานข้อมูล
-    const filePath = path.join(UPLOAD_DIR, fileData.md5); // ใช้ MD5 hash เป็นชื่อไฟล์ที่เก็บ
+    const filePath = path.join(UPLOAD_DIR, md5); // ใช้ MD5 เป็นชื่อไฟล์
 
-    // ตรวจสอบว่าไฟล์มีอยู่ในเซิร์ฟเวอร์หรือไม่
+    // ตรวจสอบว่าไฟล์มีอยู่จริงบนเซิร์ฟเวอร์
     try {
       await fs.access(filePath);
     } catch (error) {
@@ -168,6 +163,7 @@ export const editFile = async (c: Context) => {
     const formData = await c.req.formData();
     const file = formData.get("file") as File;
     const fileId = parseInt(c.req.param("id"));
+    const petitionId = parseInt(c.req.param("petitionId"));
 
     if (!file) {
       return c.json({ error: "No file uploaded" }, 400);
@@ -177,17 +173,19 @@ export const editFile = async (c: Context) => {
     const buffer = await file.arrayBuffer();
     const fileContent = Buffer.from(buffer);
 
-    // สร้าง MD5 hash
-    const md5Hash = crypto.createHash("md5").update(fileContent).digest("hex");
-
     // แยกนามสกุลไฟล์
-    const extension = path.extname(file.name);
-    const fileName = path.basename(file.name, extension); // ชื่อไฟล์ที่ไม่มีนามสกุล
+    const fileExtension = path.extname(file.name); // นามสกุลไฟล์
+    const fileNameWithoutExt = path.basename(file.name, fileExtension); // ชื่อไฟล์โดยไม่มีนามสกุล
+
+    // สร้าง MD5 hash
+    const md5Hash = crypto
+      .createHash("md5")
+      .update(petitionId + "." + fileNameWithoutExt)
+      .digest("hex");
 
     // ใช้ MD5 hash เป็นชื่อไฟล์ที่เก็บ
     const newFileName = `${md5Hash}`;
 
-    // ใช้ UPLOAD_DIR แทนการใช้ process.cwd()
     await ensureUploadDir();
 
     // บันทึกไฟล์ใหม่
@@ -197,8 +195,8 @@ export const editFile = async (c: Context) => {
     await db
       .update(petitionFiles)
       .set({
-        name: fileName,
-        extension,
+        name: fileNameWithoutExt,
+        extension: fileExtension,
         md5: md5Hash,
       })
       .where(eq(petitionFiles.id, fileId));

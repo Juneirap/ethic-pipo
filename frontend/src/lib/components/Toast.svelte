@@ -32,7 +32,7 @@
     if (show) {
       timeoutId = setTimeout(() => {
         show = false;
-      }, 3000);
+      }, 10000);
     }
   });
 </script>

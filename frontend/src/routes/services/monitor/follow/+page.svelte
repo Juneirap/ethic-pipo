@@ -62,55 +62,10 @@
   let petitionFiles: PetitionFile[] = [];
 
   // เพิ่มฟังก์ชันสำหรับเปิดไฟล์
-  const openFile = async (fileName: string) => {
-    try {
-      // Encode the filename to handle special characters
-      const encodedFileName = encodeURIComponent(fileName);
-      const response = await fetch(
-        `http://localhost:8000/upload/file/${encodedFileName}`,
-        {
-          method: "GET",
-          headers: {
-            Accept: "*/*",
-          },
-        },
-      );
-
-      if (!response.ok) {
-        throw new Error("Failed to fetch file");
-      }
-
-      // Get the content type from response headers
-      const contentType = response.headers.get("Content-Type") || "";
-      const disposition = response.headers.get("Content-Disposition") || "";
-
-      // Get the blob with the correct type
-      const blob = await response.blob();
-
-      // Create a URL for the blob
-      const url = window.URL.createObjectURL(blob);
-
-      // If it's a PDF or image, open in new tab
-      if (contentType.includes("pdf") || contentType.includes("image")) {
-        window.open(url, "_blank");
-      } else {
-        // For other files, trigger download
-        const a = document.createElement("a");
-        a.href = url;
-        a.download = fileName; // Use original filename for download
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-      }
-
-      // Clean up the URL object after a delay
-      setTimeout(() => window.URL.revokeObjectURL(url), 1000);
-    } catch (error) {
-      console.error("Error opening file:", error);
-      toastStore.show("ไม่สามารถเปิดไฟล์ได้", "error");
-    }
+  const openFile = async (file: PetitionFile) => {
+    window.location.href = `http://localhost:8000/upload/file/${file.md5}`;
   };
-
+  
   // เพิ่มฟังก์ชันสำหรับการอัพโหลดไฟล์เพิ่มเติม
   async function handleFileUpload(event: Event, documentTypeId: number) {
     const file = (event.target as any).files?.[0];
@@ -613,11 +568,9 @@
                         <i class="fas fa-file-alt file-icon"></i>
                         <span
                           class="file-name cursor-pointer"
-                          on:click={() => openFile(file.name)}
+                          on:click={() => openFile(file)}
                         >
-                          {file.name.length > 31
-                            ? file.name.substring(0, 35) + "..."
-                            : file.name}
+                          {file.name + file.extension}
                         </span>
                       </div>
                       {#if ![1, 2, 3].includes(petitions.statusId)}
@@ -682,11 +635,9 @@
                         <i class="fas fa-file-alt file-icon"></i>
                         <span
                           class="file-name cursor-pointer"
-                          on:click={() => openFile(file.name)}
+                          on:click={() => openFile(file)}
                         >
-                          {file.name.length > 31
-                            ? file.name.substring(0, 35) + "..."
-                            : file.name}
+                          {file.name + file.extension}
                         </span>
                       </div>
                       {#if ![1, 2, 3].includes(petitions.statusId)}
@@ -751,11 +702,9 @@
                         <i class="fas fa-file-alt file-icon"></i>
                         <span
                           class="file-name cursor-pointer"
-                          on:click={() => openFile(file.name)}
+                          on:click={() => openFile(file)}
                         >
-                          {file.name.length > 31
-                            ? file.name.substring(0, 35) + "..."
-                            : file.name}
+                          {file.name + file.extension}
                         </span>
                       </div>
                       {#if ![1, 2, 3].includes(petitions.statusId)}
@@ -820,11 +769,9 @@
                         <i class="fas fa-file-alt file-icon"></i>
                         <span
                           class="file-name cursor-pointer"
-                          on:click={() => openFile(file.name)}
+                          on:click={() => openFile(file)}
                         >
-                          {file.name.length > 31
-                            ? file.name.substring(0, 35) + "..."
-                            : file.name}
+                          {file.name + file.extension}
                         </span>
                       </div>
                       {#if ![1, 2, 3].includes(petitions.statusId)}
@@ -889,11 +836,9 @@
                         <i class="fas fa-file-alt file-icon"></i>
                         <span
                           class="file-name cursor-pointer"
-                          on:click={() => openFile(file.name)}
+                          on:click={() => openFile(file)}
                         >
-                          {file.name.length > 31
-                            ? file.name.substring(0, 35) + "..."
-                            : file.name}
+                          {file.name + file.extension}
                         </span>
                       </div>
                       {#if ![1, 2, 3].includes(petitions.statusId)}
@@ -974,11 +919,9 @@
                       <i class="fas fa-file-alt file-icon"></i>
                       <span
                         class="file-name cursor-pointer"
-                        on:click={() => openFile(file.name)}
+                        on:click={() => openFile(file)}
                       >
-                        {file.name.length > 31
-                          ? file.name.substring(0, 35) + "..."
-                          : file.name}
+                        {file.name + file.extension}
                       </span>
                     </div>
                     {#if ![1, 2, 3].includes(petitions.statusId)}
@@ -1043,11 +986,9 @@
                       <i class="fas fa-file-alt file-icon"></i>
                       <span
                         class="file-name cursor-pointer"
-                        on:click={() => openFile(file.name)}
+                        on:click={() => openFile(file)}
                       >
-                        {file.name.length > 31
-                          ? file.name.substring(0, 35) + "..."
-                          : file.name}
+                        {file.name + file.extension}
                       </span>
                     </div>
                     {#if ![1, 2, 3].includes(petitions.statusId)}
@@ -1112,11 +1053,9 @@
                       <i class="fas fa-file-alt file-icon"></i>
                       <span
                         class="file-name cursor-pointer"
-                        on:click={() => openFile(file.name)}
+                        on:click={() => openFile(file)}
                       >
-                        {file.name.length > 31
-                          ? file.name.substring(0, 35) + "..."
-                          : file.name}
+                        {file.name + file.extension}
                       </span>
                     </div>
                     {#if ![1, 2, 3].includes(petitions.statusId)}
@@ -1181,11 +1120,9 @@
                       <i class="fas fa-file-alt file-icon"></i>
                       <span
                         class="file-name cursor-pointer"
-                        on:click={() => openFile(file.name)}
+                        on:click={() => openFile(file)}
                       >
-                        {file.name.length > 31
-                          ? file.name.substring(0, 35) + "..."
-                          : file.name}
+                        {file.name + file.extension}
                       </span>
                     </div>
                     {#if ![1, 2, 3].includes(petitions.statusId)}
@@ -1250,11 +1187,9 @@
                       <i class="fas fa-file-alt file-icon"></i>
                       <span
                         class="file-name cursor-pointer"
-                        on:click={() => openFile(file.name)}
+                        on:click={() => openFile(file)}
                       >
-                        {file.name.length > 31
-                          ? file.name.substring(0, 35) + "..."
-                          : file.name}
+                        {file.name + file.extension}
                       </span>
                     </div>
                     {#if ![1, 2, 3].includes(petitions.statusId)}
@@ -1335,11 +1270,9 @@
                         <i class="fas fa-file-alt file-icon"></i>
                         <span
                           class="file-name cursor-pointer"
-                          on:click={() => openFile(file.name)}
+                          on:click={() => openFile(file)}
                         >
-                          {file.name.length > 31
-                            ? file.name.substring(0, 35) + "..."
-                            : file.name}
+                          {file.name + file.extension}
                         </span>
                       </div>
                       {#if ![1, 2, 3].includes(petitions.statusId)}
@@ -1404,11 +1337,9 @@
                         <i class="fas fa-file-alt file-icon"></i>
                         <span
                           class="file-name cursor-pointer"
-                          on:click={() => openFile(file.name)}
+                          on:click={() => openFile(file)}
                         >
-                          {file.name.length > 31
-                            ? file.name.substring(0, 35) + "..."
-                            : file.name}
+                          {file.name + file.extension}
                         </span>
                       </div>
                       {#if ![1, 2, 3].includes(petitions.statusId)}
@@ -1473,11 +1404,9 @@
                         <i class="fas fa-file-alt file-icon"></i>
                         <span
                           class="file-name cursor-pointer"
-                          on:click={() => openFile(file.name)}
+                          on:click={() => openFile(file)}
                         >
-                          {file.name.length > 31
-                            ? file.name.substring(0, 35) + "..."
-                            : file.name}
+                          {file.name + file.extension}
                         </span>
                       </div>
                       {#if ![1, 2, 3].includes(petitions.statusId)}
@@ -1542,11 +1471,9 @@
                         <i class="fas fa-file-alt file-icon"></i>
                         <span
                           class="file-name cursor-pointer"
-                          on:click={() => openFile(file.name)}
+                          on:click={() => openFile(file)}
                         >
-                          {file.name.length > 31
-                            ? file.name.substring(0, 35) + "..."
-                            : file.name}
+                          {file.name + file.extension}
                         </span>
                       </div>
                       {#if ![1, 2, 3].includes(petitions.statusId)}
@@ -1611,11 +1538,9 @@
                         <i class="fas fa-file-alt file-icon"></i>
                         <span
                           class="file-name cursor-pointer"
-                          on:click={() => openFile(file.name)}
+                          on:click={() => openFile(file)}
                         >
-                          {file.name.length > 31
-                            ? file.name.substring(0, 35) + "..."
-                            : file.name}
+                          {file.name + file.extension}
                         </span>
                       </div>
                       {#if ![1, 2, 3].includes(petitions.statusId)}
@@ -1681,11 +1606,9 @@
                         <i class="fas fa-file-alt file-icon"></i>
                         <span
                           class="file-name cursor-pointer"
-                          on:click={() => openFile(file.name)}
+                          on:click={() => openFile(file)}
                         >
-                          {file.name.length > 31
-                            ? file.name.substring(0, 35) + "..."
-                            : file.name}
+                          {file.name + file.extension}
                         </span>
                       </div>
                       {#if ![1, 2, 3].includes(petitions.statusId)}
