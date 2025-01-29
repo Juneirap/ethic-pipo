@@ -347,8 +347,7 @@ export const getPetitionFilesByPetitionId = async (c: any) => {
     const files = await db
       .select({
         id: petitionFiles.id,
-        name: petitionFiles.name,
-        extension: petitionFiles.extension,
+        name: sql`concat(${petitionFiles.name}, ${petitionFiles.extension})`,
         md5: petitionFiles.md5,
         petitionId: petitionFiles.petitionId,
         documentTypeId: petitionFiles.documentTypeId,
