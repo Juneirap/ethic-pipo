@@ -62,7 +62,7 @@
 
   // เพิ่มฟังก์ชันสำหรับเปิดไฟล์
   const openFile = async (file: PetitionFile) => {
-    window.location.href = `http://localhost:8000/upload/file/${file.md5}`;
+    window.open(`http://localhost:8000/upload/file/${file.md5}`, '_blank');
   };
 
   // เพิ่มฟังก์ชันสำหรับการอัพโหลดไฟล์เพิ่มเติม
