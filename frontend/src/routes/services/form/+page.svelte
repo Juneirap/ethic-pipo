@@ -200,9 +200,11 @@
   async function handleSubmit(event: Event) {
     event.preventDefault();
     let shouldGeneratePDF = true;
-    
+
     const submitButton = event.target as HTMLFormElement;
-    (submitButton.querySelector("button[type=submit]") as HTMLButtonElement).disabled = true;
+    (
+      submitButton.querySelector("button[type=submit]") as HTMLButtonElement
+    ).disabled = true;
 
     try {
       // 1. ตรวจสอบข้อมูลที่จำเป็น
@@ -249,7 +251,9 @@
 
       // ถ้ามีข้อผิดพลาด ให้แสดงทั้งหมดและยกเลิกการบันทึก
       if (validationErrors.length > 0) {
-        (submitButton.querySelector("button[type=submit]") as HTMLButtonElement).disabled = false;
+        (
+          submitButton.querySelector("button[type=submit]") as HTMLButtonElement
+        ).disabled = false;
         toastStore.show(
           `กรุณาตรวจสอบและกรอกข้อมูลให้ครบถ้วน:\n\n${validationErrors.join("\n")}`,
           "error"
@@ -280,7 +284,11 @@
 
         if (!researcherResponse.ok) {
           const errorData = await researcherResponse.json();
-          (submitButton.querySelector("button[type=submit]") as HTMLButtonElement).disabled = false;
+          (
+            submitButton.querySelector(
+              "button[type=submit]"
+            ) as HTMLButtonElement
+          ).disabled = false;
           throw new Error(
             errorData.error ||
               errorData.details ||
@@ -299,7 +307,9 @@
         researcherId = latestResearcher.id;
       } else {
         researcherId = selectedResearcher.id;
-        (submitButton.querySelector("button[type=submit]") as HTMLButtonElement).disabled = true;
+        (
+          submitButton.querySelector("button[type=submit]") as HTMLButtonElement
+        ).disabled = true;
       }
 
       // 3. สร้าง petition
@@ -345,7 +355,9 @@
       }
       const latestPetition = await latestPetitionResponse.json();
       petitionId = latestPetition[0].id;
-      (submitButton.querySelector("button[type=submit]") as HTMLButtonElement).disabled = false;
+      (
+        submitButton.querySelector("button[type=submit]") as HTMLButtonElement
+      ).disabled = false;
 
       // 6. อัพโหลดไฟล์ทั้งหมด
       const uploadPromises = [];
@@ -391,7 +403,9 @@
         generatePDF();
         toastStore.show("บันทึกข้อมูลสำเร็จ", "success");
         resetForm();
-        (submitButton.querySelector("button[type=submit]") as HTMLButtonElement).disabled = false;
+        (
+          submitButton.querySelector("button[type=submit]") as HTMLButtonElement
+        ).disabled = false;
       }
     } catch (error) {
       console.error("Error submitting form:", error);
@@ -399,6 +413,24 @@
         error.message || "เกิดข้อผิดพลาดในการบันทึกข้อมูล",
         "error"
       );
+    }
+  }
+
+  async function checkTelNo(event) {
+    const telNo = event.currentTarget.value;
+    const res = await fetch(
+      `http://localhost:8000/researchers/check?telNo=${telNo}`
+    );
+    if (res.ok) {
+      const researcherData = await res.json();
+      if (researcherData.length > 0) {
+        toastStore.show(
+          `กรุณาใช้เบอร์โทรศัพท์อื่น : เบอร์นี้ได้ถูกลงทะเบียนแล้ว`,
+          "error"
+        );
+      }
+    } else {
+      console.error("เบอร์นี้ได้ลงทะเบียนแล้ว");
     }
   }
 
@@ -842,20 +874,7 @@
             type="text"
             bind:value={researcherData.telNo}
             placeholder="ไม่ต้องใส่เครื่องหมาย - เช่น 0812345678"
-            on:input={async (e) => {
-              const telNo = e.currentTarget.value;
-              const res = await fetch(
-                `http://localhost:8000/researchers/check?telNo=${telNo}`
-              );
-              if (res.ok) {
-                const researcherData = await res.json();
-                if (researcherData.length > 0) {
-                  toastStore.show(`กรุณาใช้เบอร์โทรศัพท์อื่น : เบอร์นี้ได้ถูกลงทะเบียนแล้ว`, "warning");
-                }
-              } else {
-                console.error("เบอร์นี้ได้ลงทะเบียนแล้ว");
-              }
-            }}
+            on:input={checkTelNo}
           />
         </div>
       </div>
