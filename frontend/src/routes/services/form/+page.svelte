@@ -14,22 +14,6 @@
     description: string;
   }> = [];
 
-  //////////////////////////////////
-  // Function to convert ArrayBuffer to hex string
-  function arrayBufferToHex(buffer: ArrayBuffer) {
-    return Array.from(new Uint8Array(buffer))
-      .map((b) => b.toString(16).padStart(2, "0"))
-      .join("");
-  }
-
-  // Async function to compute MD5 hash
-  async function computeMD5(message: string) {
-    const msgBuffer = new TextEncoder().encode(message);
-    const hashBuffer = await crypto.subtle.digest("MD5", msgBuffer);
-    return arrayBufferToHex(hashBuffer);
-  }
-
-  /////////////////////////////
 
   onMount(async () => {
     try {
@@ -428,7 +412,9 @@
         for (const [documentId, fileData] of Object.entries(uploadedFiles)) {
           let md5FileName = petitionId + "." + fileData.name;
 
-          md5FileName = await computeMD5(md5FileName);
+          md5FileName = await crypto.subtle.digest('MD5', new TextEncoder().encode(md5FileName)).then(hashBuffer => {
+            return Array.from(new Uint8Array(hashBuffer)).map(b => b.toString(16).padStart(2, '0')).join('');
+          });
 
           const response = await fetch(
             `http://localhost:8000/upload/unlink/${md5FileName}`,
