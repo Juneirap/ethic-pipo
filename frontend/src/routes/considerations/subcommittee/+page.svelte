@@ -514,6 +514,7 @@
     gap: 1rem;
     margin-top: 1rem;
     margin-bottom: 1rem;
+    padding: 1rem;
   }
   .pagination button {
     border: none;
