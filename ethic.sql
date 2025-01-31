@@ -1,17 +1,17 @@
 /*
- Navicat MySQL Dump SQL
+ Navicat Premium Dump SQL
 
  Source Server         : ethic
  Source Server Type    : MySQL
- Source Server Version : 80040 (8.0.40)
+ Source Server Version : 80041 (8.0.41)
  Source Host           : localhost:3306
  Source Schema         : ethic
 
  Target Server Type    : MySQL
- Target Server Version : 80040 (8.0.40)
+ Target Server Version : 80041 (8.0.41)
  File Encoding         : 65001
 
- Date: 16/01/2025 17:32:41
+ Date: 31/01/2025 22:25:33
 */
 
 SET NAMES utf8mb4;
@@ -28,13 +28,14 @@ CREATE TABLE `committee`  (
   `surname` text CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL,
   `position_id` bigint UNSIGNED NOT NULL,
   `description` text CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL,
-  `tel_no` text CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL,
+  `tel_no` varchar(15) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL,
   `created_at` timestamp NOT NULL DEFAULT (now()),
-  `deleted_at` timestamp NOT NULL DEFAULT (now()),
+  `deleted_at` timestamp NULL DEFAULT NULL,
   PRIMARY KEY (`id`) USING BTREE,
   UNIQUE INDEX `id`(`id` ASC) USING BTREE,
   INDEX `committee_pre_name_id_pre_name_id_fk`(`pre_name_id` ASC) USING BTREE,
   INDEX `committee_position_id_committee_position_id_fk`(`position_id` ASC) USING BTREE,
+  UNIQUE INDEX `committee_tel_no_unique`(`tel_no` ASC) USING BTREE,
   CONSTRAINT `committee_position_id_committee_position_id_fk` FOREIGN KEY (`position_id`) REFERENCES `committee_position` (`id`) ON DELETE RESTRICT ON UPDATE RESTRICT,
   CONSTRAINT `committee_pre_name_id_pre_name_id_fk` FOREIGN KEY (`pre_name_id`) REFERENCES `pre_name` (`id`) ON DELETE RESTRICT ON UPDATE RESTRICT
 ) ENGINE = InnoDB AUTO_INCREMENT = 3 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci ROW_FORMAT = DYNAMIC;
@@ -42,8 +43,6 @@ CREATE TABLE `committee`  (
 -- ----------------------------
 -- Records of committee
 -- ----------------------------
-INSERT INTO `committee` VALUES (1, 1, 'Test', 'Committee', 2, 'Test Committee', '098-7654321', '2025-01-08 13:47:36', '2025-01-08 13:47:36');
-INSERT INTO `committee` VALUES (2, 1, 'สมชาย', 'ขายดี', 1, 'กรรมการ', '097-6542314', '2025-01-15 17:09:41', '2025-01-15 17:09:41');
 
 -- ----------------------------
 -- Table structure for committee_position
@@ -180,7 +179,7 @@ CREATE TABLE `petition`  (
   `note` text CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL,
   `staff_id` bigint UNSIGNED NOT NULL,
   `created_at` timestamp NOT NULL DEFAULT (now()),
-  `deleted_at` timestamp NOT NULL DEFAULT (now()),
+  `deleted_at` timestamp NULL DEFAULT NULL,
   PRIMARY KEY (`id`) USING BTREE,
   UNIQUE INDEX `id`(`id` ASC) USING BTREE,
   INDEX `petition_objective_id_petition_objective_type_id_fk`(`objective_id` ASC) USING BTREE,
@@ -197,14 +196,11 @@ CREATE TABLE `petition`  (
   CONSTRAINT `petition_staff_id_staff_id_fk` FOREIGN KEY (`staff_id`) REFERENCES `staff` (`id`) ON DELETE RESTRICT ON UPDATE RESTRICT,
   CONSTRAINT `petition_status_id_petition_status_id_fk` FOREIGN KEY (`status_id`) REFERENCES `petition_status` (`id`) ON DELETE RESTRICT ON UPDATE RESTRICT,
   CONSTRAINT `petition_type_id_petition_type_id_fk` FOREIGN KEY (`type_id`) REFERENCES `petition_type` (`id`) ON DELETE RESTRICT ON UPDATE RESTRICT
-) ENGINE = InnoDB AUTO_INCREMENT = 66 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci ROW_FORMAT = DYNAMIC;
+) ENGINE = InnoDB AUTO_INCREMENT = 102 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci ROW_FORMAT = DYNAMIC;
 
 -- ----------------------------
 -- Records of petition
 -- ----------------------------
-INSERT INTO `petition` VALUES (1, '100/1', 'ทดสอบคำร้อง', 'Test Petition', 3, 'test', 3, 'test', 1, 1, 1, 1, 1, 'เอกสารครบถ้วน รอการตรวจสอบจากคณะกรรมการ', 1, '2025-01-08 14:17:11', '2025-01-08 14:17:11');
-INSERT INTO `petition` VALUES (64, '100/2', 'ทดสอบคำร้อง2', 'Test Petition2', 1, NULL, 2, NULL, NULL, 1, 1, 1, 1, '', 1, '2025-01-15 18:06:54', '2025-01-15 18:06:54');
-INSERT INTO `petition` VALUES (65, '100/4', 'ฟวาหก', 'skfslfk', 1, NULL, 1, NULL, NULL, 1, 53, 1, 1, '', 1, '2025-01-16 10:18:18', '2025-01-16 10:18:18');
 
 -- ----------------------------
 -- Table structure for petition_committee
@@ -237,8 +233,6 @@ CREATE TABLE `petition_committee`  (
 -- ----------------------------
 -- Records of petition_committee
 -- ----------------------------
-INSERT INTO `petition_committee` VALUES (1, 1, 2, 1, 2, 'ผ่านการพิจารณารอบแรก', 1, '2025-01-08 14:20:28', '2025-01-08 14:20:28');
-INSERT INTO `petition_committee` VALUES (2, 1, 2, 1, 1, 'Test note', 1, '2025-01-08 16:42:25', '2025-01-08 16:42:25');
 
 -- ----------------------------
 -- Table structure for petition_document_type
@@ -285,14 +279,11 @@ CREATE TABLE `petition_files`  (
   INDEX `petition_files_document_type_id_petition_document_type_id_fk`(`document_type_id` ASC) USING BTREE,
   CONSTRAINT `petition_files_document_type_id_petition_document_type_id_fk` FOREIGN KEY (`document_type_id`) REFERENCES `petition_document_type` (`id`) ON DELETE RESTRICT ON UPDATE RESTRICT,
   CONSTRAINT `petition_files_petition_id_petition_id_fk` FOREIGN KEY (`petition_id`) REFERENCES `petition` (`id`) ON DELETE RESTRICT ON UPDATE RESTRICT
-) ENGINE = InnoDB AUTO_INCREMENT = 36 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci ROW_FORMAT = Dynamic;
+) ENGINE = InnoDB AUTO_INCREMENT = 190 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci ROW_FORMAT = DYNAMIC;
 
 -- ----------------------------
 -- Records of petition_files
 -- ----------------------------
-INSERT INTO `petition_files` VALUES (33, '538795306691854718_โครงการรับหมวกและเข็มเลื่อนชั้นปี รุ่นที่13 - 2 พค 2567 ล่าสุด.docx  5 พ.ย.pdf', '.pdf', '99c21f236775c0127d88ed90a45b2f78', 64, 1, '2025-01-15 18:06:54');
-INSERT INTO `petition_files` VALUES (34, 'รายชื่อนิสติพยาบาลศาสตรบัณฑิต-ชั้นปีที่-2.pdf', '.pdf', '2d9712c40883bb8b44fe2e40b7d9eaf2', 65, 1, '2025-01-16 10:18:18');
-INSERT INTO `petition_files` VALUES (35, 'ใบงาน-Class#2.pdf', '.pdf', '524fde89af4ce952139d189670890326', 65, 2, '2025-01-16 10:18:18');
 
 -- ----------------------------
 -- Table structure for petition_grant
@@ -410,7 +401,7 @@ CREATE TABLE `pre_name`  (
   `description` text CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL,
   PRIMARY KEY (`id`) USING BTREE,
   UNIQUE INDEX `id`(`id` ASC) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 9 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci ROW_FORMAT = DYNAMIC;
+) ENGINE = InnoDB AUTO_INCREMENT = 12 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci ROW_FORMAT = DYNAMIC;
 
 -- ----------------------------
 -- Records of pre_name
@@ -419,10 +410,13 @@ INSERT INTO `pre_name` VALUES (1, 'นาย');
 INSERT INTO `pre_name` VALUES (2, 'นาง');
 INSERT INTO `pre_name` VALUES (3, 'นางสาว');
 INSERT INTO `pre_name` VALUES (4, 'ดร.');
-INSERT INTO `pre_name` VALUES (5, 'ศาสตราจารย์เกียรติคุณ (กิตติคุณ)');
+INSERT INTO `pre_name` VALUES (5, 'ศาสตราจารย์เกียรติคุณ');
 INSERT INTO `pre_name` VALUES (6, 'ศาสตราจารย์');
 INSERT INTO `pre_name` VALUES (7, 'รองศาสตราจารย์');
 INSERT INTO `pre_name` VALUES (8, 'ผู้ช่วยศาสตราจารย์');
+INSERT INTO `pre_name` VALUES (9, 'ผศ.ดร.');
+INSERT INTO `pre_name` VALUES (10, 'รศ.ดร.');
+INSERT INTO `pre_name` VALUES (11, 'ศ.ดร.');
 
 -- ----------------------------
 -- Table structure for researcher
@@ -434,24 +428,22 @@ CREATE TABLE `researcher`  (
   `name` text CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL,
   `surname` text CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL,
   `department_id` bigint UNSIGNED NOT NULL,
-  `tel_no` text CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL,
+  `tel_no` varchar(15) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL,
   `email` text CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL,
   `created_at` timestamp NOT NULL DEFAULT (now()),
-  `deleted_at` timestamp NOT NULL DEFAULT (now()),
+  `deleted_at` timestamp NULL DEFAULT NULL,
   PRIMARY KEY (`id`) USING BTREE,
   UNIQUE INDEX `id`(`id` ASC) USING BTREE,
   INDEX `researcher_pre_name_id_pre_name_id_fk`(`pre_name_id` ASC) USING BTREE,
   INDEX `researcher_department_id_department_id_fk`(`department_id` ASC) USING BTREE,
+  UNIQUE INDEX `researcher_tel_no_unique`(`tel_no` ASC) USING BTREE,
   CONSTRAINT `researcher_department_id_department_id_fk` FOREIGN KEY (`department_id`) REFERENCES `department` (`id`) ON DELETE RESTRICT ON UPDATE RESTRICT,
   CONSTRAINT `researcher_pre_name_id_pre_name_id_fk` FOREIGN KEY (`pre_name_id`) REFERENCES `pre_name` (`id`) ON DELETE RESTRICT ON UPDATE RESTRICT
-) ENGINE = InnoDB AUTO_INCREMENT = 54 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci ROW_FORMAT = DYNAMIC;
+) ENGINE = InnoDB AUTO_INCREMENT = 59 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci ROW_FORMAT = DYNAMIC;
 
 -- ----------------------------
 -- Records of researcher
 -- ----------------------------
-INSERT INTO `researcher` VALUES (1, 1, 'ปิยดนัย', 'โครงกลาง', 37, '0628658535', '650112418059@bru.ac.th', '2025-01-08 13:40:28', '2025-01-08 13:40:28');
-INSERT INTO `researcher` VALUES (3, 1, 'อภิสิทธิ์', 'สุขคำชา', 4, '0643518554', 'J8boy04@gmail.com', '2025-01-12 17:31:25', '2025-01-12 17:31:25');
-INSERT INTO `researcher` VALUES (53, 1, 'นพดล', 'คงกันเอง', 37, '0881038204', 'peesamgamer29@gmail.com', '2025-01-15 15:38:56', '2025-01-15 15:38:56');
 
 -- ----------------------------
 -- Table structure for roles
@@ -480,19 +472,19 @@ CREATE TABLE `staff`  (
   `email` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL,
   `name` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL,
   `surname` text CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL,
-  `tel_no` text CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL,
+  `tel_no` varchar(15) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL,
   `role_id` bigint UNSIGNED NOT NULL,
   `created_at` timestamp NOT NULL DEFAULT (now()),
   PRIMARY KEY (`id`) USING BTREE,
   UNIQUE INDEX `id`(`id` ASC) USING BTREE,
   UNIQUE INDEX `staff_email_unique`(`email` ASC) USING BTREE,
   INDEX `staff_role_id_roles_id_fk`(`role_id` ASC) USING BTREE,
+  UNIQUE INDEX `staff_tel_no_unique`(`tel_no` ASC) USING BTREE,
   CONSTRAINT `staff_role_id_roles_id_fk` FOREIGN KEY (`role_id`) REFERENCES `roles` (`id`) ON DELETE RESTRICT ON UPDATE RESTRICT
 ) ENGINE = InnoDB AUTO_INCREMENT = 2 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci ROW_FORMAT = DYNAMIC;
 
 -- ----------------------------
 -- Records of staff
 -- ----------------------------
-INSERT INTO `staff` VALUES (1, 'admin@gmail.com', 'Admin', 'Test', '081-1234567', 1, '2025-01-08 13:35:38');
 
 SET FOREIGN_KEY_CHECKS = 1;

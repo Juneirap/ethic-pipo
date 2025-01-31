@@ -19,7 +19,7 @@ export const staff = mysqlTable("staff", {
   email: varchar("email", { length: 255 }).notNull().unique(),
   name: varchar("name", { length: 255 }).notNull(),
   surname: text("surname").notNull(),
-  telNo: text("tel_no").notNull().unique(),
+  telNo: varchar("tel_no", { length: 15 }).notNull().unique(),
   roleId: bigint("role_id", { mode: "number", unsigned: true })
     .notNull()
     .references(() => roles.id),
@@ -56,10 +56,10 @@ export const researcher = mysqlTable("researcher", {
   departmentId: bigint("department_id", { mode: "number", unsigned: true })
     .notNull()
     .references(() => department.id),
-  telNo: text("tel_no").notNull().unique(),
+  telNo: varchar("tel_no", { length: 15 }).notNull().unique(),
   email: text("email").notNull(),
   createdAt: timestamp("created_at").defaultNow().notNull(),
-  deletedAt: timestamp("deleted_at").defaultNow().notNull(),
+  deletedAt: timestamp("deleted_at"),
 });
 
 export const committeePosition = mysqlTable("committee_position", {
@@ -78,9 +78,9 @@ export const committee = mysqlTable("committee", {
     .notNull()
     .references(() => committeePosition.id),
   description: text("description").notNull(),
-  telNo: text("tel_no").notNull(),
+  telNo: varchar("tel_no", { length: 15 }).notNull().unique(),
   createdAt: timestamp("created_at").defaultNow().notNull(),
-  deletedAt: timestamp("deleted_at").defaultNow().notNull(),
+  deletedAt: timestamp("deleted_at"),
 });
 
 export const petitionType = mysqlTable("petition_type", {
@@ -151,7 +151,7 @@ export const petition = mysqlTable("petition", {
     .notNull()
     .references(() => staff.id),
   createdAt: timestamp("created_at").defaultNow().notNull(),
-  deletedAt: timestamp("deleted_at").defaultNow().notNull(),
+  deletedAt: timestamp("deleted_at"),
 });
 
 export const petitionCommittee = mysqlTable("petition_committee", {
