@@ -200,9 +200,9 @@
   async function handleSubmit(event: Event) {
     event.preventDefault();
     let shouldGeneratePDF = true;
-    const submitButton = event.target as HTMLFormElement;
-    submitButton.querySelector("button[type=submit]")!.disabled = true;
     
+    const submitButton = event.target as HTMLFormElement;
+    (submitButton.querySelector("button[type=submit]") as HTMLButtonElement).disabled = true;
 
     try {
       // 1. ตรวจสอบข้อมูลที่จำเป็น
@@ -249,6 +249,7 @@
 
       // ถ้ามีข้อผิดพลาด ให้แสดงทั้งหมดและยกเลิกการบันทึก
       if (validationErrors.length > 0) {
+        (submitButton.querySelector("button[type=submit]") as HTMLButtonElement).disabled = false;
         toastStore.show(
           `กรุณาตรวจสอบและกรอกข้อมูลให้ครบถ้วน:\n\n${validationErrors.join("\n")}`,
           "error"
@@ -378,7 +379,7 @@
         generatePDF();
         toastStore.show("บันทึกข้อมูลสำเร็จ", "success");
         resetForm();
-        submitButton.disabled = false;
+        (submitButton.querySelector("button[type=submit]") as HTMLButtonElement).disabled = true;
       }
     } catch (error) {
       console.error("Error submitting form:", error);
@@ -825,7 +826,7 @@
       <div class="field full-width">
         <label>โทรศัพท์</label>
         <div class="dotted-line">
-          <input type="text" bind:value={researcherData.telNo} />
+          <input type="text" bind:value={researcherData.telNo} placeholder="ไม่ต้องใส่เครื่องหมาย - เช่น 0812345678"/>
         </div>
       </div>
     </div>
