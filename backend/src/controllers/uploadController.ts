@@ -278,3 +278,37 @@ export const checkFile = async (c: Context) => {
     );
   }
 };
+
+
+    // สร้างฟังก์ชันสําหรับการลบไฟล์
+    export const unlinkFile = async (c: Context) => {
+      try {
+        const md5 = c.req.param("md5filename"); // รับค่า MD5 จาก URL
+
+        if (!md5) {
+          return c.json({ error: "MD5 hash is required" }, 400);
+        }
+
+        // ตรวจสอบว่าไฟล์มีอยู่จริงบนเซิร์ฟเวอร์
+        const filePath = path.join(UPLOAD_DIR, md5);
+        try {
+          await fs.access(filePath);
+        } catch (error) {
+          return c.json({ error: "File not found on server" }, 404);
+        }
+
+        // ลบไฟล์จริง
+        await fs.unlink(filePath);
+
+        // ลบข้อมูลในฐานข้อมูล
+        await db.delete(petitionFiles).where(eq(petitionFiles.md5, md5));
+
+        return c.json({ message: "File deleted successfully!" }, 200);
+      } catch (error) {
+        console.error(error);
+        return c.json(
+          { error: "Failed to delete file.", details: (error as any).message },
+          500
+        );
+      }
+    };

@@ -309,7 +309,7 @@
         researcherId = selectedResearcher.id;
         (
           submitButton.querySelector("button[type=submit]") as HTMLButtonElement
-        ).disabled = true;
+        ).disabled = false;
       }
 
       // 3. สร้าง petition
@@ -333,17 +333,22 @@
           "Content-Type": "application/json",
         },
         body: JSON.stringify(petitionPayload),
+      
       });
 
       if (!petitionResponse.ok) {
         const errorData = await petitionResponse.json();
         // ถ้าบันทึก petition ไม่สำเร็จ และเราสร้างนักวิจัยใหม่ ให้ลบนักวิจัยที่เพิ่งสร้าง
         if (!selectedResearcher && researcherId) {
-          await fetch(`http://localhost:8000/researchers/${researcherId}`, {
+          await fetch(`http://localhost:8000/researchers?id=${researcherId}`, {
             method: "DELETE",
           });
         }
+        (
+        submitButton.querySelector("button[type=submit]") as HTMLButtonElement
+      ).disabled = false;
         throw new Error(errorData.error || "ไม่สามารถบันทึกคำร้องได้");
+        
       }
 
       // 5. ดึง petition ID ล่าสุด
@@ -380,6 +385,9 @@
           }
         });
         uploadPromises.push(uploadPromise);
+        (
+          submitButton.querySelector("button[type=submit]") as HTMLButtonElement
+        ).disabled = false;
       }
 
       try {
@@ -389,6 +397,11 @@
         await fetch(`http://localhost:8000/petitions?id=${petitionId}`, {
           method: "DELETE",
         });
+
+        (
+          submitButton.querySelector("button[type=submit]") as HTMLButtonElement
+        ).disabled = false;
+
         // และถ้าเราสร้างนักวิจัยใหม่ ให้ลบนักวิจัยด้วย
         if (!selectedResearcher && researcherId) {
           await fetch(`http://localhost:8000/researchers?id=${researcherId}`, {
@@ -397,15 +410,22 @@
         }
         // ลบไฟล์ที่อัพโหลดไปแล้ว
         for (const [documentId, fileData] of Object.entries(uploadedFiles)) {
-          let fileName = fileData.name;
-          let md5FileName = petitionId+"."+fileName;
+          const md5FileName = petitionId + "." + fileData.name;
           
-          ////////////////*********************/////////
-          md5FileName = md5(md5FileName);
-
-          await fetch(`http://localhost:8000/upload/unlink/${md5FileName}`, {
-            method: "DELETE",
-          });
+          const response = await fetch(
+            `http://localhost:8000/upload/unlink/${md5FileName}`,
+            {
+              method: "DELETE",
+            }
+          );
+          if (!response.ok) {
+            const errorData = await response.json();
+            if (errorData.error) {
+              console.error("Error deleting file:", errorData);
+            } else {
+              console.error("Error deleting file:", errorData.details);
+            }
+          }
         }
 
         throw new Error(`เกิดข้อผิดพลาดในการอัพโหลดไฟล์: ${error.message}`);

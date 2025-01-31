@@ -1,5 +1,5 @@
 import { Hono } from 'hono';
-import { uploadFile, getFile, editFile, checkFile } from '../controllers/uploadController';
+import { uploadFile, getFile, editFile, checkFile,unlinkFile } from '../controllers/uploadController';
 
 const app = new Hono();
 
@@ -14,5 +14,8 @@ app.put('/edit/:id', editFile);
 
 // เส้นทางสำหรับตรวจสอบไฟล์ซ้ำ
 app.get('/check/:petitionId/:documentTypeId/:filename', checkFile);
+
+// เส้นทางสำหรับลบไฟล์
+app.delete('/unlink/:md5filename', unlinkFile);
 
 export default app;
