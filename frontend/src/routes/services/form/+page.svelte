@@ -267,14 +267,24 @@
             headers: {
               "Content-Type": "application/json",
             },
-            body: JSON.stringify(researcherData),
+            body: JSON.stringify({
+              prenameId: researcherData.prenameId,
+              name: researcherData.name,
+              surname: researcherData.surname,
+              departmentId: researcherData.departmentId,
+              telNo: researcherData.telNo,
+              email: researcherData.email,
+            }),
           }
         );
 
         if (!researcherResponse.ok) {
           const errorData = await researcherResponse.json();
+          (submitButton.querySelector("button[type=submit]") as HTMLButtonElement).disabled = false;
           throw new Error(
-            errorData.error || "ไม่สามารถบันทึกข้อมูลนักวิจัยได้"
+            errorData.error ||
+              errorData.details ||
+              "ไม่สามารถบันทึกข้อมูลนักวิจัยได้"
           );
         }
 
@@ -289,6 +299,7 @@
         researcherId = latestResearcher.id;
       } else {
         researcherId = selectedResearcher.id;
+        (submitButton.querySelector("button[type=submit]") as HTMLButtonElement).disabled = true;
       }
 
       // 3. สร้าง petition
@@ -334,6 +345,7 @@
       }
       const latestPetition = await latestPetitionResponse.json();
       petitionId = latestPetition[0].id;
+      (submitButton.querySelector("button[type=submit]") as HTMLButtonElement).disabled = false;
 
       // 6. อัพโหลดไฟล์ทั้งหมด
       const uploadPromises = [];
@@ -379,7 +391,7 @@
         generatePDF();
         toastStore.show("บันทึกข้อมูลสำเร็จ", "success");
         resetForm();
-        (submitButton.querySelector("button[type=submit]") as HTMLButtonElement).disabled = true;
+        (submitButton.querySelector("button[type=submit]") as HTMLButtonElement).disabled = false;
       }
     } catch (error) {
       console.error("Error submitting form:", error);
@@ -826,7 +838,11 @@
       <div class="field full-width">
         <label>โทรศัพท์</label>
         <div class="dotted-line">
-          <input type="text" bind:value={researcherData.telNo} placeholder="ไม่ต้องใส่เครื่องหมาย - เช่น 0812345678"/>
+          <input
+            type="text"
+            bind:value={researcherData.telNo}
+            placeholder="ไม่ต้องใส่เครื่องหมาย - เช่น 0812345678"
+          />
         </div>
       </div>
     </div>

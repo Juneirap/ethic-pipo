@@ -43,6 +43,16 @@ export const addResearcher = async (c: any) => {
       return c.json({ error: "All fields are required." }, 400);
     }
 
+    const existingResearcher = await db
+      .select()
+      .from(researcher)
+      .where(sql`${researcher.telNo} = ${telNo}`)
+      .limit(1);
+
+    if (existingResearcher.length) {
+      return c.json({ error: "เบอร์โทรศัพท์นี้มีการใช้งานไปแล้วโปรดใช้เบอร์โทรศัพท์อื่น" }, 400);
+    }
+
     await db.insert(researcher).values({
       prenameId,
       name,
@@ -206,3 +216,5 @@ export const verifyResearcherByPhoneAndPetition = async (c: any) => {
     );
   }
 };
+
+

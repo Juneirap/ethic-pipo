@@ -1,5 +1,5 @@
 import { Hono } from "hono";
-import { getResearcherById, getAllResearchersWithPrenameDepartmentFaculty, addResearcher, getResearchersByName,getlatestResearcher, verifyResearcherByPhoneAndPetition,deleteResearcher} from "../controllers/researcherController";
+import { getResearcherById, getAllResearchersWithPrenameDepartmentFaculty, addResearcher, getResearchersByName,getlatestResearcher, verifyResearcherByPhoneAndPetition,deleteResearcher,} from "../controllers/researcherController";
 
 const researcherRoutes = new Hono();
 

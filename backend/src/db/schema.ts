@@ -56,7 +56,7 @@ export const researcher = mysqlTable("researcher", {
   departmentId: bigint("department_id", { mode: "number", unsigned: true })
     .notNull()
     .references(() => department.id),
-  telNo: text("tel_no").notNull(),
+  telNo: text("tel_no").notNull().unique(),
   email: text("email").notNull(),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   deletedAt: timestamp("deleted_at").defaultNow().notNull(),
