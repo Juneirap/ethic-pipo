@@ -1,15 +1,18 @@
 @font-face {
-    font-family: 'Kanit';
-    src: url('/font/kanit/Kanit-Regular.ttf') format('truetype');
-    font-weight: 400;
-    font-style: normal;
+  font-family: "Kanit";
+  src: url("/font/kanit/Kanit-Regular.ttf") format("truetype");
+  font-weight: 400;
+  font-style: normal;
 }
 
 body {
-    font-family: 'Kanit', sans-serif;
+  font-family: "Kanit", sans-serif;
+}
+
+.toast {
+  bottom: 100px !important;
 }
 
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
-
