@@ -8,7 +8,7 @@ import {
   searchPetitionsByPhoneNumber,
   getPetitionFilesByPetitionId,
   openFile,
-  getAllPetitionsSubcommittee
+  getAllPetitionsSubcommittee,deletePetition
 } from "../controllers/petitionController";
 import { authMiddleware } from "../middleware/authMiddleware";
 
@@ -24,6 +24,8 @@ petitionRoutes.get("/", getPetitionById);
 petitionRoutes.post("/", addPetition);
 
 petitionRoutes.put("/", updatePetition);
+
+petitionRoutes.delete("/", deletePetition);
 
 petitionRoutes.get("/search", searchPetitionsByPhoneNumber);
 

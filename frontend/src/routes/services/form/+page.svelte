@@ -358,12 +358,12 @@
         await Promise.all(uploadPromises);
       } catch (error) {
         // ถ้าเกิดข้อผิดพลาดในการอัพโหลดไฟล์ ให้ลบ petition ที่เพิ่งสร้าง
-        await fetch(`http://localhost:8000/petitions/${petitionId}`, {
+        await fetch(`http://localhost:8000/petitions?id=${petitionId}`, {
           method: "DELETE",
         });
         // และถ้าเราสร้างนักวิจัยใหม่ ให้ลบนักวิจัยด้วย
         if (!selectedResearcher && researcherId) {
-          await fetch(`http://localhost:8000/researchers/${researcherId}`, {
+          await fetch(`http://localhost:8000/researchers?id=${researcherId}`, {
             method: "DELETE",
           });
         }

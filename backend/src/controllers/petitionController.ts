@@ -204,13 +204,20 @@ export const addPetition = async (c: any) => {
   }
 };
 
+// สร้าง deletePetition และลบ petitionfiles ที่มี petitionId ตรงกัน
 export const deletePetition = async (c: any) => {
   try {
     const petitionId = c.req.query("id");
     if (!petitionId) {
       return c.json({ error: "Petition ID is required." }, 400);
     }
+
+    // ลบข้อมูลในตาราง petition_files ก่อน
+    await db.delete(petitionFiles).where(eq(petitionFiles.petitionId, petitionId));
+
+    // ลบข้อมูลในตาราง petition
     await db.delete(petition).where({ id: petitionId });
+
     return c.json({ message: "Petition deleted successfully!" }, 200);
   } catch (error) {
     console.error(error);
