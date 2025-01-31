@@ -45,7 +45,7 @@ const MD5 = function (e: string) {
         (b += d.substring(d.length - 2, d.length));
     return b;
   }
-  var f = [],
+  var f: number[] = [],
     q,
     r,
     s,

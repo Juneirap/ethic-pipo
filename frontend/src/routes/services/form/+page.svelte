@@ -5,8 +5,6 @@
   import { font } from "../form/Sarabun-Regular-normal.js";
   import { toastStore } from "$lib/stores/toast";
 
-  import  md5  from "./md5";
-
   // สร้างตัวแปรสำหรับวันที่ปัจจุบัน
   let currentDate = new Date().toISOString().split("T")[0];
 
@@ -15,6 +13,23 @@
     id: number;
     description: string;
   }> = [];
+
+  //////////////////////////////////
+  // Function to convert ArrayBuffer to hex string
+  function arrayBufferToHex(buffer: ArrayBuffer) {
+    return Array.from(new Uint8Array(buffer))
+      .map((b) => b.toString(16).padStart(2, "0"))
+      .join("");
+  }
+
+  // Async function to compute MD5 hash
+  async function computeMD5(message: string) {
+    const msgBuffer = new TextEncoder().encode(message);
+    const hashBuffer = await crypto.subtle.digest("MD5", msgBuffer);
+    return arrayBufferToHex(hashBuffer);
+  }
+
+  /////////////////////////////
 
   onMount(async () => {
     try {
@@ -412,7 +427,8 @@
 
         for (const [documentId, fileData] of Object.entries(uploadedFiles)) {
           let md5FileName = petitionId + "." + fileData.name;
-          md5FileName = md5(md5FileName);
+
+          md5FileName = await computeMD5(md5FileName);
 
           const response = await fetch(
             `http://localhost:8000/upload/unlink/${md5FileName}`,
