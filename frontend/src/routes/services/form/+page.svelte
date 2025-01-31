@@ -5,6 +5,8 @@
   import { font } from "../form/Sarabun-Regular-normal.js";
   import { toastStore } from "$lib/stores/toast";
 
+  import  md5  from "./md5";
+
   // สร้างตัวแปรสำหรับวันที่ปัจจุบัน
   let currentDate = new Date().toISOString().split("T")[0];
 
@@ -333,7 +335,6 @@
           "Content-Type": "application/json",
         },
         body: JSON.stringify(petitionPayload),
-      
       });
 
       if (!petitionResponse.ok) {
@@ -345,10 +346,9 @@
           });
         }
         (
-        submitButton.querySelector("button[type=submit]") as HTMLButtonElement
-      ).disabled = false;
+          submitButton.querySelector("button[type=submit]") as HTMLButtonElement
+        ).disabled = false;
         throw new Error(errorData.error || "ไม่สามารถบันทึกคำร้องได้");
-        
       }
 
       // 5. ดึง petition ID ล่าสุด
@@ -409,9 +409,11 @@
           });
         }
         // ลบไฟล์ที่อัพโหลดไปแล้ว
+
         for (const [documentId, fileData] of Object.entries(uploadedFiles)) {
-          const md5FileName = petitionId + "." + fileData.name;
-          
+          let md5FileName = petitionId + "." + fileData.name;
+          md5FileName = md5(md5FileName);
+
           const response = await fetch(
             `http://localhost:8000/upload/unlink/${md5FileName}`,
             {
