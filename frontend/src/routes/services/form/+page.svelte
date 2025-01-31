@@ -418,19 +418,24 @@
 
   async function checkTelNo(event) {
     const telNo = event.currentTarget.value;
-    const res = await fetch(
-      `http://localhost:8000/researchers/check?telNo=${telNo}`
-    );
-    if (res.ok) {
-      const researcherData = await res.json();
-      if (researcherData.length > 0) {
-        toastStore.show(
-          `กรุณาใช้เบอร์โทรศัพท์อื่น : เบอร์นี้ได้ถูกลงทะเบียนแล้ว`,
-          "error"
-        );
+    if (telNo.length === 10) {
+      const res = await fetch(
+        `http://localhost:8000/researchers/check?telNo=${telNo}`
+      );
+
+      if (res.ok) {
+        const researcherData = await res.json();
+        console.log(researcherData);
+
+        if (researcherData.length > 0) {
+          toastStore.show(
+            `เกิดข้อผิดพลาด : หมายเลขโทรศัพท์นี้ถูกลงทะเบียนแล้ว`,
+            "error"
+          );
+        }
+      } else {
+        console.error("หมายเลขโทรศัพท์นี้ถูกลงทะเบียนแล้ว");
       }
-    } else {
-      console.error("เบอร์นี้ได้ลงทะเบียนแล้ว");
     }
   }
 
@@ -507,7 +512,7 @@
     // Header Section
     const logo =
       "https://th.bing.com/th/id/OIP.CFJHa2V7Aq9YTw8qF2GLzwHaIn?rs=1&pid=ImgDetMain";
-    doc.addImage(logo, "JPEG", 15, 10, 17, 22);
+    doc.addImage(logo, "JPEG", 15, 10, 19, 22);
     doc.setFontSize(16);
     doc.text("บันทึกข้อความ", 105, 20, { align: "center" });
     doc.text("มหาวิทยาลัยราชภัฏบุรีรัมย์", 105, 30, { align: "center" });
@@ -521,7 +526,15 @@
     doc.text(`เลขเอกสาร :   ${formData.correspondenceNo}`, 20, 50);
     doc.line(38, 52, 129, 52);
 
-    doc.text(`วันที่ :   ${currentDate}`, 130, 50);
+    const thaiMonths = [
+      "มกราคม", "กุมภาพันธ์", "มีนาคม", "เมษายน", "พฤษภาคม", "มิถุนายน",
+      "กรกฎาคม", "สิงหาคม", "กันยายน", "ตุลาคม", "พฤศจิกายน", "ธันวาคม"
+    ];
+
+    const dateParts = currentDate.split("-");
+    const thaiDate = `${parseInt(dateParts[2])} ${thaiMonths[parseInt(dateParts[1]) - 1]} ${parseInt(dateParts[0]) + 543}`;
+
+    doc.text(`วันที่ :   ${thaiDate}`, 130, 50);
     doc.line(139, 52, 180, 52);
 
     // Subject and Addressee
@@ -871,6 +884,7 @@
         <label>โทรศัพท์</label>
         <div class="dotted-line">
           <input
+            maxlength="10"
             type="text"
             bind:value={researcherData.telNo}
             placeholder="ไม่ต้องใส่เครื่องหมาย - เช่น 0812345678"

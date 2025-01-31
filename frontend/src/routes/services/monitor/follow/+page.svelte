@@ -1670,11 +1670,10 @@
       <h3>ข้อเสนอแนะ</h3>
       <div class="evaluation-fields">
         <div class="field-group">
-          <label>ข้อเสนอแนะเพิ่มเติม</label>
-          <textarea
+          <textarea readonly
             class="evaluation-textarea"
             bind:value={petitions.note}
-            placeholder="กรุณาระบุข้อเสนอแนะเพิ่มเติม"
+            placeholder="ข้อเสนอแนะเพิ่มเติม"
           ></textarea>
         </div>
       </div>
