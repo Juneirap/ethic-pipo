@@ -13,6 +13,9 @@
     completed: []
   };
   let showSearchResults = false;
+  let currentPageStatus1and4 = 1;
+  let currentPageStatus2and3 = 1;
+  const itemsPerPage = 10;
 
   // ดึงค่า authToken จาก store ของ SvelteKit
   $: authToken = $page.data.authToken;
@@ -82,6 +85,56 @@
   // ฟังก์ชันเปลี่ยนหน้า
   function goToDirectorPage(id: number, isCompleted: boolean) {
     goto(`/considerations/subcommittee/director?id=${id}&isCompleted=${isCompleted}`);
+  }
+
+  // Computed properties for pagination
+  $: paginatedPetitionsStatus1and4 = ongoingPetitions.slice(
+    (currentPageStatus1and4 - 1) * itemsPerPage,
+    currentPageStatus1and4 * itemsPerPage
+  );
+  $: paginatedPetitionsStatus2and3 = completedPetitions.slice(
+    (currentPageStatus2and3 - 1) * itemsPerPage,
+    currentPageStatus2and3 * itemsPerPage
+  );
+
+  // Total pages
+  $: totalPagesStatus1and4 = Math.ceil(
+    ongoingPetitions.length / itemsPerPage
+  );
+  $: totalPagesStatus2and3 = Math.ceil(
+    completedPetitions.length / itemsPerPage
+  );
+
+  function nextPageStatus1and4() {
+    if (currentPageStatus1and4 < totalPagesStatus1and4) {
+      currentPageStatus1and4 += 1;
+    }
+  }
+
+  function prevPageStatus1and4() {
+    if (currentPageStatus1and4 > 1) {
+      currentPageStatus1and4 -= 1;
+    }
+  }
+
+  function nextPageStatus2and3() {
+    if (currentPageStatus2and3 < totalPagesStatus2and3) {
+      currentPageStatus2and3 += 1;
+    }
+  }
+
+  function prevPageStatus2and3() {
+    if (currentPageStatus2and3 > 1) {
+      currentPageStatus2and3 -= 1;
+    }
+  }
+
+  function getPaginationArray(totalPages: number) {
+    const array = [];
+    for (let i = 1; i <= totalPages; i++) {
+      array.push(i);
+    }
+    return array;
   }
 
   // เรียกใช้ฟังก์ชันเมื่อ component ถูกโหลด
@@ -217,14 +270,14 @@
           </tr>
         </thead>
         <tbody class="text-gray-600 text-sm font-light">
-          {#if ongoingPetitions.length === 0}
+          {#if paginatedPetitionsStatus1and4.length === 0}
             <tr>
               <td colspan="7" class="py-8 text-center text-gray-500"
                 >ไม่พบข้อมูลคำร้อง</td
               >
             </tr>
           {:else}
-            {#each ongoingPetitions as petition, index}
+            {#each paginatedPetitionsStatus1and4 as petition, index}
               <tr class="border-b border-gray-200 hover:bg-gray-100">
                 <td class="py-3 px-6 text-left whitespace-nowrap">
                   {petition.researcher}
@@ -278,6 +331,23 @@
           {/if}
         </tbody>
       </table>
+      <div class="pagination">
+        <button
+          on:click={prevPageStatus1and4}
+          disabled={currentPageStatus1and4 === 1}>ก่อนหน้า</button
+        >
+        {#each getPaginationArray(totalPagesStatus1and4) as page}
+          <button
+            on:click={() => (currentPageStatus1and4 = page)}
+            class:active={currentPageStatus1and4 === page}>{page}</button
+          >
+        {/each}
+        <button
+          on:click={nextPageStatus1and4}
+          disabled={currentPageStatus1and4 === totalPagesStatus1and4}
+          >ถัดไป</button
+        >
+      </div>
     </div>
 
     <div class="table-container">
@@ -297,14 +367,14 @@
           </tr>
         </thead>
         <tbody class="text-gray-600 text-sm font-light">
-          {#if completedPetitions.length === 0}
+          {#if paginatedPetitionsStatus2and3.length === 0}
             <tr>
               <td colspan="7" class="py-8 text-center text-gray-500"
                 >ไม่พบข้อมูลคำร้อง</td
               >
             </tr>
           {:else}
-            {#each completedPetitions as petition, index}
+            {#each paginatedPetitionsStatus2and3 as petition, index}
               <tr class="border-b border-gray-200 hover:bg-gray-100">
                 <td class="py-3 px-6 text-left whitespace-nowrap">
                   {petition.researcher}
@@ -358,6 +428,23 @@
           {/if}
         </tbody>
       </table>
+      <div class="pagination">
+        <button
+          on:click={prevPageStatus2and3}
+          disabled={currentPageStatus2and3 === 1}>ก่อนหน้า</button
+        >
+        {#each getPaginationArray(totalPagesStatus2and3) as page}
+          <button
+            on:click={() => (currentPageStatus2and3 = page)}
+            class:active={currentPageStatus2and3 === page}>{page}</button
+          >
+        {/each}
+        <button
+          on:click={nextPageStatus2and3}
+          disabled={currentPageStatus2and3 === totalPagesStatus2and3}
+          >ถัดไป</button
+        >
+      </div>
     </div>
   {/if}
 </div>
@@ -418,5 +505,32 @@
     padding: 1rem;
     border-radius: 0.5rem;
     border: 1px solid #e2e8f0;
+  }
+
+  .pagination {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 1rem;
+    margin-top: 1rem;
+    margin-bottom: 1rem;
+  }
+  .pagination button {
+    border: none;
+    background-color: #f4f4f4;
+    padding: 0.5rem 1rem;
+    border-radius: 0.25rem;
+    cursor: pointer;
+  }
+  .pagination button:hover {
+    background-color: #e5e5e5;
+  }
+  .pagination button:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+  .pagination button.active {
+    background-color: #007bff;
+    color: white;
   }
 </style>
