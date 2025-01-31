@@ -200,6 +200,9 @@
   async function handleSubmit(event: Event) {
     event.preventDefault();
     let shouldGeneratePDF = true;
+    const submitButton = event.target as HTMLFormElement;
+    submitButton.querySelector("button[type=submit]")!.disabled = true;
+    
 
     try {
       // 1. ตรวจสอบข้อมูลที่จำเป็น
@@ -375,6 +378,7 @@
         generatePDF();
         toastStore.show("บันทึกข้อมูลสำเร็จ", "success");
         resetForm();
+        submitButton.disabled = false;
       }
     } catch (error) {
       console.error("Error submitting form:", error);
