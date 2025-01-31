@@ -932,7 +932,6 @@
       <h3>ข้อเสนอแนะ</h3>
       <div class="evaluation-fields">
         <div class="field-group">
-          <label>ข้อเสนอแนะเพิ่มเติม</label>
           <textarea
             class="evaluation-textarea"
             bind:value={petitions.note}

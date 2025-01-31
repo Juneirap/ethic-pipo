@@ -6,7 +6,7 @@
   let petitions: string | any[] = [];
   let ongoingPetitions: any[] = [];
   let completedPetitions: any[] = [];
-  let authToken;
+  let authToken : any;
   let searchQuery = "";
   let searchResults = {
     ongoing: [],
@@ -61,16 +61,16 @@
       return;
     }
 
-    const query = searchQuery.toLowerCase();
+    const query = searchQuery;
     
     // ค้นหาในคำร้องที่กำลังดำเนินการ
     searchResults.ongoing = ongoingPetitions.filter(petition =>
-      petition.researcher.toLowerCase().includes(query)
+      petition.researcher.includes(query)
     );
 
     // ค้นหาในคำร้องที่เสร็จสิ้น
     searchResults.completed = completedPetitions.filter(petition =>
-      petition.researcher.toLowerCase().includes(query)
+      petition.researcher.includes(query)
     );
 
     showSearchResults = true;
