@@ -1,8 +1,8 @@
 <script lang="ts">
   import { onMount } from "svelte";
   import { page } from "$app/stores";
-  import { goto } from '$app/navigation';
-  import { toastStore } from '$lib/stores/toast';
+  import { goto } from "$app/navigation";
+  import { toastStore } from "$lib/stores/toast";
 
   // สร้างตัวแปรสำหรับวันที่ปัจจุบัน
   let currentDate = new Date().toISOString().split("T")[0];
@@ -103,24 +103,27 @@
     try {
       const formData = new FormData();
       formData.append("file", newFile);
-      
-      const response = await fetch(`http://localhost:8000/upload/edit/${file.id}`, {
-        method: "PUT",
-        body: formData,
-      });
+
+      const response = await fetch(
+        `http://localhost:8000/upload/edit/${file.id}`,
+        {
+          method: "PUT",
+          body: formData,
+        }
+      );
 
       if (response.ok) {
         const data = await response.json();
         toastStore.show("แก้ไขไฟล์สำเร็จ", "success");
-        
+
         // อัพเดทรายการไฟล์ในหน้าเว็บทันที
-        petitionFiles = petitionFiles.map(pf => {
+        petitionFiles = petitionFiles.map((pf) => {
           if (pf.id === file.id) {
             return {
               ...pf,
               name: data.file.name,
               md5: data.file.md5,
-              extension: data.file.extension
+              extension: data.file.extension,
             };
           }
           return pf;
@@ -609,11 +612,11 @@
                     <div class="file-info">
                       <i class="fas fa-file-alt file-icon"></i>
                       <span
-                      class="file-name cursor-pointer"
-                      on:click={() => openFile(file)}
-                    >
-                      {file.name + file.extension}
-                    </span>
+                        class="file-name cursor-pointer"
+                        on:click={() => openFile(file)}
+                      >
+                        {file.name + file.extension}
+                      </span>
                     </div>
                     <div class="file-actions">
                       <input
@@ -654,11 +657,11 @@
                     <div class="file-info">
                       <i class="fas fa-file-alt file-icon"></i>
                       <span
-                      class="file-name cursor-pointer"
-                      on:click={() => openFile(file)}
-                    >
-                      {file.name + file.extension}
-                    </span>
+                        class="file-name cursor-pointer"
+                        on:click={() => openFile(file)}
+                      >
+                        {file.name + file.extension}
+                      </span>
                     </div>
                     <div class="file-actions">
                       <input
@@ -689,9 +692,7 @@
             </td>
           </tr>
           <tr>
-            <td class="border px-4 py-2"
-              >3. ประวัติส่วนตัว/ผลงานของผู้วิจัย</td
-            >
+            <td class="border px-4 py-2">3. ประวัติส่วนตัว/ผลงานของผู้วิจัย</td>
             <td class="border px-4 py-2">
               {#if petitionFiles.filter((f) => f.documentTypeId === 3).length > 0}
                 {#each petitionFiles.filter((f) => f.documentTypeId === 3) as file}
@@ -699,11 +700,11 @@
                     <div class="file-info">
                       <i class="fas fa-file-alt file-icon"></i>
                       <span
-                      class="file-name cursor-pointer"
-                      on:click={() => openFile(file)}
-                    >
-                      {file.name + file.extension}
-                    </span>
+                        class="file-name cursor-pointer"
+                        on:click={() => openFile(file)}
+                      >
+                        {file.name + file.extension}
+                      </span>
                     </div>
                     <div class="file-actions">
                       <input
@@ -735,7 +736,8 @@
           </tr>
           <tr>
             <td class="border px-4 py-2"
-              >4. เอกสารผ่านการอบรมจริยธรรมการวิจัยของผู้วิจัยและผู้ร่วมโครงการวิจัย</td
+              >4.
+              เอกสารผ่านการอบรมจริยธรรมการวิจัยของผู้วิจัยและผู้ร่วมโครงการวิจัย</td
             >
             <td class="border px-4 py-2">
               {#if petitionFiles.filter((f) => f.documentTypeId === 4).length > 0}
@@ -744,11 +746,11 @@
                     <div class="file-info">
                       <i class="fas fa-file-alt file-icon"></i>
                       <span
-                      class="file-name cursor-pointer"
-                      on:click={() => openFile(file)}
-                    >
-                      {file.name + file.extension}
-                    </span>
+                        class="file-name cursor-pointer"
+                        on:click={() => openFile(file)}
+                      >
+                        {file.name + file.extension}
+                      </span>
                     </div>
                     <div class="file-actions">
                       <input
@@ -789,11 +791,11 @@
                     <div class="file-info">
                       <i class="fas fa-file-alt file-icon"></i>
                       <span
-                      class="file-name cursor-pointer"
-                      on:click={() => openFile(file)}
-                    >
-                      {file.name + file.extension}
-                    </span>
+                        class="file-name cursor-pointer"
+                        on:click={() => openFile(file)}
+                      >
+                        {file.name + file.extension}
+                      </span>
                     </div>
                     <div class="file-actions">
                       <input
@@ -834,11 +836,11 @@
                     <div class="file-info">
                       <i class="fas fa-file-alt file-icon"></i>
                       <span
-                      class="file-name cursor-pointer"
-                      on:click={() => openFile(file)}
-                    >
-                      {file.name + file.extension}
-                    </span>
+                        class="file-name cursor-pointer"
+                        on:click={() => openFile(file)}
+                      >
+                        {file.name + file.extension}
+                      </span>
                     </div>
                     <div class="file-actions">
                       <input
@@ -870,7 +872,8 @@
           </tr>
           <tr>
             <td class="border px-4 py-2"
-              >7. เอกสารชี้แจงผู้เข้าร่วมการวิจัย (Participant information sheet)</td
+              >7. เอกสารชี้แจงผู้เข้าร่วมการวิจัย (Participant information
+              sheet)</td
             >
             <td class="border px-4 py-2">
               {#if petitionFiles.filter((f) => f.documentTypeId === 7).length > 0}
@@ -879,11 +882,11 @@
                     <div class="file-info">
                       <i class="fas fa-file-alt file-icon"></i>
                       <span
-                      class="file-name cursor-pointer"
-                      on:click={() => openFile(file)}
-                    >
-                      {file.name + file.extension}
-                    </span>
+                        class="file-name cursor-pointer"
+                        on:click={() => openFile(file)}
+                      >
+                        {file.name + file.extension}
+                      </span>
                     </div>
                     <div class="file-actions">
                       <input
@@ -924,11 +927,11 @@
                     <div class="file-info">
                       <i class="fas fa-file-alt file-icon"></i>
                       <span
-                      class="file-name cursor-pointer"
-                      on:click={() => openFile(file)}
-                    >
-                      {file.name + file.extension}
-                    </span>
+                        class="file-name cursor-pointer"
+                        on:click={() => openFile(file)}
+                      >
+                        {file.name + file.extension}
+                      </span>
                     </div>
                     <div class="file-actions">
                       <input
@@ -969,11 +972,11 @@
                     <div class="file-info">
                       <i class="fas fa-file-alt file-icon"></i>
                       <span
-                      class="file-name cursor-pointer"
-                      on:click={() => openFile(file)}
-                    >
-                      {file.name + file.extension}
-                    </span>
+                        class="file-name cursor-pointer"
+                        on:click={() => openFile(file)}
+                      >
+                        {file.name + file.extension}
+                      </span>
                     </div>
                     <div class="file-actions">
                       <input
@@ -1014,11 +1017,11 @@
                     <div class="file-info">
                       <i class="fas fa-file-alt file-icon"></i>
                       <span
-                      class="file-name cursor-pointer"
-                      on:click={() => openFile(file)}
-                    >
-                      {file.name + file.extension}
-                    </span>
+                        class="file-name cursor-pointer"
+                        on:click={() => openFile(file)}
+                      >
+                        {file.name + file.extension}
+                      </span>
                     </div>
                     <div class="file-actions">
                       <input
@@ -1050,7 +1053,8 @@
           </tr>
           <tr>
             <td class="border px-4 py-2"
-              >11. Investigator’s brochure / ทะเบียนและเอกสารกำกับยาหรือเครื่องมือ (ถ้ามี)</td
+              >11. Investigator’s brochure /
+              ทะเบียนและเอกสารกำกับยาหรือเครื่องมือ (ถ้ามี)</td
             >
             <td class="border px-4 py-2">
               {#if petitionFiles.filter((f) => f.documentTypeId === 11).length > 0}
@@ -1059,11 +1063,11 @@
                     <div class="file-info">
                       <i class="fas fa-file-alt file-icon"></i>
                       <span
-                      class="file-name cursor-pointer"
-                      on:click={() => openFile(file)}
-                    >
-                      {file.name + file.extension}
-                    </span>
+                        class="file-name cursor-pointer"
+                        on:click={() => openFile(file)}
+                      >
+                        {file.name + file.extension}
+                      </span>
                     </div>
                     <div class="file-actions">
                       <input
@@ -1101,7 +1105,7 @@
       <h3>ข้อเสนอแนะ</h3>
       <div class="evaluation-fields">
         <div class="field-group">
-          <label >ข้อเสนอแนะเพิ่มเติม</label>
+          <label>ข้อเสนอแนะเพิ่มเติม</label>
           <textarea
             class="evaluation-textarea"
             bind:value={petitions.note}
@@ -1113,7 +1117,9 @@
       {#if petitions.statusId !== 2 && petitions.statusId !== 3}
         <div class="form-actions">
           <button type="submit" on:click={handleSubmit}>ผ่านการพิจารณา</button>
-          <button type="button" on:click={handleUpdate}>ไม่ผ่านการพิจารณา</button>
+          <button type="button" on:click={handleUpdate}
+            >ไม่ผ่านการพิจารณา</button
+          >
         </div>
       {/if}
     </div>
@@ -1386,11 +1392,11 @@
   }
 
   .file-icon {
-    color: #2196F3;
+    color: #2196f3;
   }
 
   .file-name {
-    color: #2196F3;
+    color: #2196f3;
     text-decoration: underline;
     cursor: pointer;
     font-size: 0.9rem;
@@ -1414,21 +1420,21 @@
   }
 
   .edit-button {
-    background-color: #2196F3;
+    background-color: #2196f3;
     color: white;
   }
 
   .edit-button:hover {
-    background-color: #1976D2;
+    background-color: #1976d2;
   }
 
   .upload-button {
-    background-color: #4CAF50;
+    background-color: #4caf50;
     color: white;
   }
 
   .upload-button:hover {
-    background-color: #388E3C;
+    background-color: #388e3c;
   }
 
   .upload-section {
@@ -1444,6 +1450,6 @@
   }
 
   .file-name:hover {
-    color: #1565C0;
+    color: #1565c0;
   }
 </style>

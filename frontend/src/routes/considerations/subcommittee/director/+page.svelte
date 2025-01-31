@@ -2,7 +2,7 @@
   import { onMount } from "svelte";
   import { page } from "$app/stores";
   import { goto } from "$app/navigation";
-  import { toastStore } from '$lib/stores/toast';
+  import { toastStore } from "$lib/stores/toast";
 
   // สร้างตัวแปรสำหรับวันที่ปัจจุบัน
   let currentDate = new Date().toISOString().split("T")[0];
@@ -64,7 +64,7 @@
 
   // เพิ่มฟังก์ชันสำหรับเปิดไฟล์
   const openFile = async (file: PetitionFile) => {
-    window.location.href = `http://localhost:8000/upload/file/${file.md5}`;
+    window.open(`http://localhost:8000/upload/file/${file.md5}`, "_blank");
   };
 
   // เพิ่มฟังก์ชันสำหรับการอัพโหลดไฟล์เพิ่มเติม
@@ -690,11 +690,11 @@
                     <div class="file-info">
                       <i class="fas fa-file-alt file-icon"></i>
                       <span
-                      class="file-name cursor-pointer"
-                      on:click={() => openFile(file)}
-                    >
-                      {file.name + file.extension}
-                    </span>
+                        class="file-name cursor-pointer"
+                        on:click={() => openFile(file)}
+                      >
+                        {file.name + file.extension}
+                      </span>
                     </div>
                     <div class="file-actions">
                       {#if !isCompleted}
@@ -739,11 +739,11 @@
                     <div class="file-info">
                       <i class="fas fa-file-alt file-icon"></i>
                       <span
-                      class="file-name cursor-pointer"
-                      on:click={() => openFile(file)}
-                    >
-                      {file.name + file.extension}
-                    </span>
+                        class="file-name cursor-pointer"
+                        on:click={() => openFile(file)}
+                      >
+                        {file.name + file.extension}
+                      </span>
                     </div>
                     <div class="file-actions">
                       {#if !isCompleted}
@@ -788,11 +788,11 @@
                     <div class="file-info">
                       <i class="fas fa-file-alt file-icon"></i>
                       <span
-                      class="file-name cursor-pointer"
-                      on:click={() => openFile(file)}
-                    >
-                      {file.name + file.extension}
-                    </span>
+                        class="file-name cursor-pointer"
+                        on:click={() => openFile(file)}
+                      >
+                        {file.name + file.extension}
+                      </span>
                     </div>
                     <div class="file-actions">
                       {#if !isCompleted}
@@ -837,11 +837,11 @@
                     <div class="file-info">
                       <i class="fas fa-file-alt file-icon"></i>
                       <span
-                      class="file-name cursor-pointer"
-                      on:click={() => openFile(file)}
-                    >
-                      {file.name + file.extension}
-                    </span>
+                        class="file-name cursor-pointer"
+                        on:click={() => openFile(file)}
+                      >
+                        {file.name + file.extension}
+                      </span>
                     </div>
                     <div class="file-actions">
                       {#if !isCompleted}
@@ -886,11 +886,11 @@
                     <div class="file-info">
                       <i class="fas fa-file-alt file-icon"></i>
                       <span
-                      class="file-name cursor-pointer"
-                      on:click={() => openFile(file)}
-                    >
-                      {file.name + file.extension}
-                    </span>
+                        class="file-name cursor-pointer"
+                        on:click={() => openFile(file)}
+                      >
+                        {file.name + file.extension}
+                      </span>
                     </div>
                     <div class="file-actions">
                       {#if !isCompleted}
@@ -946,9 +946,14 @@
           <button type="button" on:click={handleExemption}
             >เข้าข่ายข้อยกเว้น</button
           >
-          <button type="button" on:click={handleSubmit}>ผ่านการพิจารณา (พิจารณาต่อในขั้นกรรมการ)</button>
-          <button type="button" on:click={handleEdit}>ส่งเอกสารเพิ่มเติม</button>
-          <button type="button" on:click={handleUpdate}>ไม่ผ่านการพิจารณา</button>
+          <button type="button" on:click={handleSubmit}
+            >ผ่านการพิจารณา (พิจารณาต่อในขั้นกรรมการ)</button
+          >
+          <button type="button" on:click={handleEdit}>ส่งเอกสารเพิ่มเติม</button
+          >
+          <button type="button" on:click={handleUpdate}
+            >ไม่ผ่านการพิจารณา</button
+          >
         </div>
       {/if}
     </div>
