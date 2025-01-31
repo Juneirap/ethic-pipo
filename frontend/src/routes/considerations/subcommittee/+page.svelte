@@ -6,11 +6,11 @@
   let petitions: string | any[] = [];
   let ongoingPetitions: any[] = [];
   let completedPetitions: any[] = [];
-  let authToken : any;
+  let authToken: any;
   let searchQuery = "";
   let searchResults = {
     ongoing: [],
-    completed: []
+    completed: [],
   };
   let showSearchResults = false;
   let currentPageStatus1and4 = 1;
@@ -34,15 +34,19 @@
 
       if (response.ok) {
         const allPetitions = await response.json();
-        
+
         // กรองข้อมูลตาม currentLevelId และ statusId
         ongoingPetitions = allPetitions.filter((petition) => {
-          return petition.currentLevelId === 1 && (petition.statusId === 1 || petition.statusId === 4);
+          return (
+            petition.currentLevelId === 1 &&
+            (petition.statusId === 1 || petition.statusId === 4)
+          );
         });
 
         completedPetitions = allPetitions.filter((petition) => {
           return (
-            (petition.currentLevelId === 1 && (petition.statusId === 2 || petition.statusId === 3)) ||
+            (petition.currentLevelId === 1 &&
+              (petition.statusId === 2 || petition.statusId === 3)) ||
             (petition.currentLevelId === 2 && petition.statusId === 1)
           );
         });
@@ -53,6 +57,7 @@
       console.error("Error fetching petitions:", error);
     }
   }
+  
 
   // ฟังก์ชันค้นหาผู้วิจัย
   function searchResearcher() {
@@ -62,14 +67,16 @@
     }
 
     const query = searchQuery;
-    
+
+    console.log(ongoingPetitions);
+
     // ค้นหาในคำร้องที่กำลังดำเนินการ
-    searchResults.ongoing = ongoingPetitions.filter(petition =>
+    searchResults.ongoing = ongoingPetitions.filter((petition) =>
       petition.researcher.includes(query)
     );
 
     // ค้นหาในคำร้องที่เสร็จสิ้น
-    searchResults.completed = completedPetitions.filter(petition =>
+    searchResults.completed = completedPetitions.filter((petition) =>
       petition.researcher.includes(query)
     );
 
@@ -84,7 +91,9 @@
 
   // ฟังก์ชันเปลี่ยนหน้า
   function goToDirectorPage(id: number, isCompleted: boolean) {
-    goto(`/considerations/subcommittee/director?id=${id}&isCompleted=${isCompleted}`);
+    goto(
+      `/considerations/subcommittee/director?id=${id}&isCompleted=${isCompleted}`
+    );
   }
 
   // Computed properties for pagination
@@ -98,9 +107,7 @@
   );
 
   // Total pages
-  $: totalPagesStatus1and4 = Math.ceil(
-    ongoingPetitions.length / itemsPerPage
-  );
+  $: totalPagesStatus1and4 = Math.ceil(ongoingPetitions.length / itemsPerPage);
   $: totalPagesStatus2and3 = Math.ceil(
     completedPetitions.length / itemsPerPage
   );
@@ -164,17 +171,21 @@
           on:input={searchResearcher}
         />
         {#if searchQuery}
-          <button class="btn btn-outline" on:click={resetSearch}>ล้างการค้นหา</button>
+          <button class="btn btn-outline" on:click={resetSearch}
+            >ล้างการค้นหา</button
+          >
         {/if}
       </div>
 
       {#if showSearchResults}
         <div class="search-results mt-4">
           <h3 class="text-lg font-semibold mb-2">ผลการค้นหา</h3>
-          
+
           {#if searchResults.ongoing.length > 0}
             <div class="mb-4">
-              <h4 class="text-md font-medium text-blue-600">พบในคำร้องที่กำลังดำเนินการ ({searchResults.ongoing.length} รายการ)</h4>
+              <h4 class="text-md font-medium text-blue-600">
+                พบในคำร้องที่กำลังดำเนินการ ({searchResults.ongoing.length} รายการ)
+              </h4>
               <div class="overflow-x-auto">
                 <table class="min-w-full">
                   <thead>
@@ -194,7 +205,7 @@
                             : result.title_th}
                         </td>
                         <td class="px-4 py-2 text-center">
-                          <button 
+                          <button
                             class="btn btn-outline btn-primary btn-sm"
                             on:click={() => goToDirectorPage(result.id, false)}
                           >
@@ -211,7 +222,10 @@
 
           {#if searchResults.completed.length > 0}
             <div class="mb-4">
-              <h4 class="text-md font-medium text-green-600">พบในคำร้องที่ดำเนินการเสร็จสิ้น ({searchResults.completed.length} รายการ)</h4>
+              <h4 class="text-md font-medium text-green-600">
+                พบในคำร้องที่ดำเนินการเสร็จสิ้น ({searchResults.completed
+                  .length} รายการ)
+              </h4>
               <div class="overflow-x-auto">
                 <table class="min-w-full">
                   <thead>
@@ -231,7 +245,7 @@
                             : result.title_th}
                         </td>
                         <td class="px-4 py-2 text-center">
-                          <button 
+                          <button
                             class="btn btn-outline btn-primary btn-sm"
                             on:click={() => goToDirectorPage(result.id, true)}
                           >
@@ -351,7 +365,9 @@
     </div>
 
     <div class="table-container">
-      <h2 class="text-xl font-bold mt-8 mb-4">ข้อมูลคำร้อง (ดำเนินการเสร็จสิ้น)</h2>
+      <h2 class="text-xl font-bold mt-8 mb-4">
+        ข้อมูลคำร้อง (ดำเนินการเสร็จสิ้น)
+      </h2>
       <table class="min-w-full bg-white">
         <thead>
           <tr

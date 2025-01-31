@@ -395,6 +395,19 @@
             method: "DELETE",
           });
         }
+        // ลบไฟล์ที่อัพโหลดไปแล้ว
+        for (const [documentId, fileData] of Object.entries(uploadedFiles)) {
+          let fileName = fileData.name;
+          let md5FileName = petitionId+"."+fileName;
+          
+          ////////////////*********************/////////
+          md5FileName = md5(md5FileName);
+
+          await fetch(`http://localhost:8000/upload/unlink/${md5FileName}`, {
+            method: "DELETE",
+          });
+        }
+
         throw new Error(`เกิดข้อผิดพลาดในการอัพโหลดไฟล์: ${error.message}`);
       }
 
@@ -527,8 +540,18 @@
     doc.line(38, 52, 129, 52);
 
     const thaiMonths = [
-      "มกราคม", "กุมภาพันธ์", "มีนาคม", "เมษายน", "พฤษภาคม", "มิถุนายน",
-      "กรกฎาคม", "สิงหาคม", "กันยายน", "ตุลาคม", "พฤศจิกายน", "ธันวาคม"
+      "มกราคม",
+      "กุมภาพันธ์",
+      "มีนาคม",
+      "เมษายน",
+      "พฤษภาคม",
+      "มิถุนายน",
+      "กรกฎาคม",
+      "สิงหาคม",
+      "กันยายน",
+      "ตุลาคม",
+      "พฤศจิกายน",
+      "ธันวาคม",
     ];
 
     const dateParts = currentDate.split("-");

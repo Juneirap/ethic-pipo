@@ -11,7 +11,7 @@
   let searchQuery = "";
   let searchResults = {
     ongoing: [],
-    completed: []
+    completed: [],
   };
   let showSearchResults = false;
 
@@ -27,6 +27,7 @@
       errorMessage = "คุณไม่ได้รับอนุญาต";
       return;
     }
+
     try {
       const response = await fetch(
         "http://localhost:8000/petitions/subcommittee",
@@ -43,13 +44,13 @@
         petitions = allPetitions.filter((petition) => {
           return petition.currentLevelId === 2;
         });
-        
+
         // แยกข้อมูลตาม statusId
-        ongoingPetitions = petitions.filter(petition => 
-          petition.statusId === 1 || petition.statusId === 4
+        ongoingPetitions = petitions.filter(
+          (petition) => petition.statusId === 1 || petition.statusId === 4
         );
-        completedPetitions = petitions.filter(petition => 
-          petition.statusId === 2 || petition.statusId === 3
+        completedPetitions = petitions.filter(
+          (petition) => petition.statusId === 2 || petition.statusId === 3
         );
       } else {
         errorMessage = "Failed to fetch petitions";
@@ -67,14 +68,14 @@
     }
 
     const query = searchQuery;
-    
+
     // ค้นหาในคำร้องที่กำลังดำเนินการ
-    searchResults.ongoing = ongoingPetitions.filter(petition =>
+    searchResults.ongoing = ongoingPetitions.filter((petition) =>
       petition.researcher.includes(query)
     );
 
     // ค้นหาในคำร้องที่เสร็จสิ้น
-    searchResults.completed = completedPetitions.filter(petition =>
+    searchResults.completed = completedPetitions.filter((petition) =>
       petition.researcher.includes(query)
     );
 
@@ -97,12 +98,12 @@
   let currentPageStatus2and3 = 1;
   let itemsPerPage = 10;
 
-  $: filteredPetitionsStatus1and4 = ongoingPetitions.filter(petition => 
-    petition.statusId === 1 || petition.statusId === 4
+  $: filteredPetitionsStatus1and4 = ongoingPetitions.filter(
+    (petition) => petition.statusId === 1 || petition.statusId === 4
   );
 
-  $: filteredPetitionsStatus2and3 = completedPetitions.filter(petition => 
-    petition.statusId === 2 || petition.statusId === 3
+  $: filteredPetitionsStatus2and3 = completedPetitions.filter(
+    (petition) => petition.statusId === 2 || petition.statusId === 3
   );
 
   $: paginatedPetitionsStatus1and4 = filteredPetitionsStatus1and4.slice(
@@ -182,17 +183,21 @@
           on:input={searchResearcher}
         />
         {#if searchQuery}
-          <button class="btn btn-outline" on:click={resetSearch}>ล้างการค้นหา</button>
+          <button class="btn btn-outline" on:click={resetSearch}
+            >ล้างการค้นหา</button
+          >
         {/if}
       </div>
 
       {#if showSearchResults}
         <div class="search-results mt-4">
           <h3 class="text-lg font-semibold mb-2">ผลการค้นหา</h3>
-          
+
           {#if searchResults.ongoing.length > 0}
             <div class="mb-4">
-              <h4 class="text-md font-medium text-blue-600">พบในคำร้องที่กำลังดำเนินการ ({searchResults.ongoing.length} รายการ)</h4>
+              <h4 class="text-md font-medium text-blue-600">
+                พบในคำร้องที่กำลังดำเนินการ ({searchResults.ongoing.length} รายการ)
+              </h4>
               <div class="overflow-x-auto">
                 <table class="min-w-full">
                   <thead>
@@ -212,7 +217,7 @@
                             : result.title_th}
                         </td>
                         <td class="px-4 py-2 text-center">
-                          <button 
+                          <button
                             class="btn btn-outline btn-primary btn-sm"
                             on:click={() => goToDirectorPage(result.id)}
                           >
@@ -229,7 +234,10 @@
 
           {#if searchResults.completed.length > 0}
             <div class="mb-4">
-              <h4 class="text-md font-medium text-green-600">พบในคำร้องที่ดำเนินการเสร็จสิ้น ({searchResults.completed.length} รายการ)</h4>
+              <h4 class="text-md font-medium text-green-600">
+                พบในคำร้องที่ดำเนินการเสร็จสิ้น ({searchResults.completed
+                  .length} รายการ)
+              </h4>
               <div class="overflow-x-auto">
                 <table class="min-w-full">
                   <thead>
@@ -249,7 +257,7 @@
                             : result.title_th}
                         </td>
                         <td class="px-4 py-2 text-center">
-                          <button 
+                          <button
                             class="btn btn-outline btn-primary btn-sm"
                             on:click={() => goToDirectorPage(result.id)}
                           >
@@ -369,7 +377,9 @@
     </div>
 
     <div class="table-container">
-      <h2 class="text-xl font-bold mt-8 mb-4">ข้อมูลคำร้อง (ดำเนินการเสร็จสิ้น)</h2>
+      <h2 class="text-xl font-bold mt-8 mb-4">
+        ข้อมูลคำร้อง (ดำเนินการเสร็จสิ้น)
+      </h2>
       <table class="min-w-full bg-white">
         <thead>
           <tr
