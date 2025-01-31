@@ -217,4 +217,20 @@ export const verifyResearcherByPhoneAndPetition = async (c: any) => {
   }
 };
 
-
+export const checkResearcherByPhone = async (c: any) => {
+  try {
+    const telNo = c.req.query("telNo");
+    const researcherData = await db
+      .select()
+      .from(researcher)
+      .where(sql`${researcher.telNo} = ${telNo}`)
+      .limit(1);
+    return c.json(researcherData, 200);
+  } catch (error) {
+    console.error(error);
+    return c.json(
+      { error: "Failed to retrieve researchers.", details: (error as any).message },
+      500
+    );
+  }
+};

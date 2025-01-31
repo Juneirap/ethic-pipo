@@ -842,6 +842,20 @@
             type="text"
             bind:value={researcherData.telNo}
             placeholder="ไม่ต้องใส่เครื่องหมาย - เช่น 0812345678"
+            on:input={async (e) => {
+              const telNo = e.currentTarget.value;
+              const res = await fetch(
+                `http://localhost:8000/researchers/check?telNo=${telNo}`
+              );
+              if (res.ok) {
+                const researcherData = await res.json();
+                if (researcherData.length > 0) {
+                  toastStore.show(`กรุณาใช้เบอร์โทรศัพท์อื่น : เบอร์นี้ได้ถูกลงทะเบียนแล้ว`, "warning");
+                }
+              } else {
+                console.error("เบอร์นี้ได้ลงทะเบียนแล้ว");
+              }
+            }}
           />
         </div>
       </div>
