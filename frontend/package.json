@@ -25,6 +25,9 @@
 	},
 	"dependencies": {
 		"@fortawesome/fontawesome-free": "^6.7.2",
+		"@types/js-md5": "^0.7.2",
+		"crypto-js": "^4.2.0",
+		"js-md5": "^0.8.3",
 		"jspdf": "^2.5.2",
 		"jspdf-autotable": "^3.8.4"
 	}

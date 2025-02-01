@@ -14,6 +14,7 @@ import fileRoutes from "./routes/fileRoutes";
 import datagetRoutes from "./routes/datagetRoutes";
 import uploadRoutes from "./routes/uploadRoutes";
 import prenameRoutes from "./routes/prenameRoutes";
+import hashRoutes from "./routes/hashRoutes";
 
 const app = new Hono();
 
@@ -41,6 +42,7 @@ app.route("/files", fileRoutes);
 app.route("/dataget", datagetRoutes);
 app.route("/upload", uploadRoutes);
 app.route("/prename", prenameRoutes);
+app.route("/hash", hashRoutes);
 
 export default {
   host: "0.0.0.0",

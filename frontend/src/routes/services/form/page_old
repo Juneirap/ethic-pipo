@@ -5,6 +5,8 @@
   import { font } from "./Sarabun-Regular-normal.js";
   import { toastStore } from "$lib/stores/toast";
 
+  import { md5 } from "./md5.js";
+
   // สร้างตัวแปรสำหรับวันที่ปัจจุบัน
   let currentDate = new Date().toISOString().split("T")[0];
 
@@ -250,18 +252,13 @@
       }
 
       // Check for duplicate file names
-      const fileNames = Object.values(uploadedFiles).map(
-        (fileData) => fileData.name
-      );
-      const duplicateFiles = fileNames.filter(
-        (name, index) => fileNames.indexOf(name) !== index
-      );
+      const fileNames = Object.values(uploadedFiles).map(fileData => fileData.name);
+      const duplicateFiles = fileNames.filter((name, index) => fileNames.indexOf(name) !== index);
 
       if (duplicateFiles.length > 0) {
-        validationErrors.push(
-          `กรุณาอัพโหลดไฟล์ที่มีชื่อไม่ซ้ำกัน:\n- ${duplicateFiles.join("\n- ")}`
-        );
+        validationErrors.push(`กรุณาอัพโหลดไฟล์ที่มีชื่อไม่ซ้ำกัน:\n- ${duplicateFiles.join("\n- ")}`);
       }
+
 
       // ถ้ามีข้อผิดพลาด ให้แสดงทั้งหมดและยกเลิกการบันทึก
       if (validationErrors.length > 0) {
@@ -447,24 +444,17 @@
         // ลบไฟล์ที่อัพโหลดไปแล้ว
 
         for (const [documentId, fileData] of Object.entries(uploadedFiles)) {
-          const inputTxt =
+          let md5FileName =
             petitionId + "." + fileData.name.split(".").slice(0, -1).join(".");
 
-          const md5Response = await fetch(
-            `http://localhost:8000/hash/md5/${inputTxt}`,
-            {
-              method: "GET",
-            }
-          );
-          const md5FileName = await md5Response.json();
+          md5FileName = md5(md5FileName);
 
           const response = await fetch(
-            `http://localhost:8000/upload/unlink/${md5FileName.md5}`,
+            `http://localhost:8000/upload/unlink/${md5FileName}`,
             {
               method: "DELETE",
             }
           );
-
           if (!response.ok) {
             const errorData = await response.json();
             if (errorData.error) {

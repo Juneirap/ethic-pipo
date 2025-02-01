@@ -139,7 +139,9 @@ export const petition = mysqlTable("petition", {
   researcherId: bigint("researcher_id", {
     mode: "number",
     unsigned: true,
-  }).notNull(),
+  })
+    .notNull()
+    .references(() => researcher.id),
   typeId: bigint("type_id", { mode: "number", unsigned: true })
     .notNull()
     .references(() => petitionType.id),

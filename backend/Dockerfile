@@ -14,6 +14,8 @@ COPY . .
 # Create drizzle directory
 RUN mkdir -p drizzle
 
+RUN bunx drizzle-kit push
+
 EXPOSE 8000
 
 CMD ["bun", "run", "dev"]
